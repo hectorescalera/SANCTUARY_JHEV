@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-surface-container-lowest">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sanctuary JHEV - Finanzas</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Material Symbols -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'surface-container-lowest': '#0f0f0f',
+                        'surface-container-low': '#161616',
+                        'surface-container': '#1e1e1e',
+                        'surface-container-high': '#282828',
+                        'on-surface': '#e2e2e2',
+                        'on-surface-variant': '#a8a8a8',
+                        'primary': '#f59e0b',
+                        'primary-container': 'rgba(245, 158, 11, 0.15)',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="h-full bg-[#121212] text-on-surface font-sans antialiased flex overflow-hidden">
+
+    <!-- BARRA LATERAL (SIDEBAR) -->
+    <aside class="w-64 bg-[#1e1e1e] border-r border-white/5 p-6 flex flex-col justify-between shrink-0 h-screen">
+        <div>
+            <!-- LOGO / CABECERA -->
+            <div class="mb-8">
+                <h1 class="text-xl font-black tracking-wider text-primary">Sanctuary JHEV</h1>
+                <p class="text-xs text-on-surface-variant/60 font-medium mt-0.5">Gestor Personal & Bitácora</p>
+            </div>
+
+            <!-- NAVEGACIÓN -->
+            <nav class="space-y-1.5">
+                <a href="index.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-on-surface-variant hover:text-white font-medium text-sm transition">
+                    <span class="material-symbols-outlined text-xl">dashboard</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="finanzas.html" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-amber-500/20 text-amber-300 font-bold text-sm tracking-wide">
+                    <span class="material-symbols-outlined text-xl">payments</span>
+                    <span>Finanzas</span>
+                </a>
+                <a href="rituales.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-on-surface-variant hover:text-white font-medium text-sm transition">
+                    <span class="material-symbols-outlined text-xl">auto_awesome</span>
+                    <span>Rituales & Proyectos</span>
+                </a>
+                <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-on-surface-variant hover:text-white font-medium text-sm transition opacity-50 cursor-not-allowed">
+                    <span class="material-symbols-outlined text-xl">edit_note</span>
+                    <span>Diario Mágico</span>
+                </a>
+            </nav>
+        </div>
+
+        <!-- FOOTER SIDEBAR / PERFIL -->
+        <div class="pt-4 border-t border-white/5 flex items-center gap-3">
+            <div class="w-9 h-9 rounded-full bg-primary/20 text-primary flex items-center justify-center font-extrabold text-sm border border-primary/30">
+                P
+            </div>
+            <div class="overflow-hidden">
+                <p class="text-xs font-bold text-white truncate">Iniciado</p>
+                <p class="text-[10px] text-on-surface-variant/60 truncate">Modo Activo</p>
+            </div>
+        </div>
+    </aside>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="flex-1 overflow-y-auto h-screen p-8 bg-[#121212]">
+        
+        <!-- HEADER PRINCIPAL -->
+        <header class="flex items-center justify-between mb-8 pb-4 border-b border-white/5">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-primary text-2xl">payments</span>
+                <h2 class="text-xl font-bold text-white tracking-wide">Gestión Financiera</h2>
+            </div>
+        </header>
+
+        <!-- TARJETAS DE RESUMEN FINANCIERO -->
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="p-6 rounded-2xl bg-[#1e1e1e] border border-white/5 shadow-xl">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-[11px] font-bold uppercase text-emerald-400">INGRESOS</span>
+                    <span class="material-symbols-outlined text-emerald-400 text-xl">arrow_upward</span>
+                </div>
+                <div id="monto-ingresos" class="text-2xl font-black text-emerald-400 text-right">$0.00</div>
+            </div>
+
+            <div class="p-6 rounded-2xl bg-[#1e1e1e] border border-white/5 shadow-xl">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-[11px] font-bold uppercase text-red-400">GASTOS</span>
+                    <span class="material-symbols-outlined text-red-400 text-xl">arrow_downward</span>
+                </div>
+                <div id="monto-gastos" class="text-2xl font-black text-red-400 text-right">$0.00</div>
+            </div>
+
+            <div class="p-6 rounded-2xl bg-[#1e1e1e] border border-white/5 shadow-xl">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-[11px] font-bold uppercase text-amber-400">NETO</span>
+                    <span class="material-symbols-outlined text-amber-400 text-xl">account_balance_wallet</span>
+                </div>
+                <div id="monto-neto" class="text-2xl font-black text-amber-400 text-right">$0.00</div>
+            </div>
+        </section>
+
+        <!-- GRID DE FORMULARIO E HISTORIAL -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- FORMULARIO REGISTRO MOVIMIENTO -->
+            <div class="p-6 rounded-2xl bg-[#1e1e1e] border border-white/5 shadow-xl">
+                <h3 class="text-lg font-bold text-white mb-4">Nuevo Movimiento</h3>
+                
+                <form id="form-finanzas" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-medium text-on-surface-variant mb-1">Tipo</label>
+                        <select id="select-tipo" class="w-full bg-[#121212] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-primary">
+                            <option value="gasto">Gasto (-)</option>
+                            <option value="ingreso">Ingreso (+)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-on-surface-variant mb-1">Concepto</label>
+                        <input type="text" id="input-concepto" placeholder="Ej. Pago Servicio, Honorarios" class="w-full bg-[#121212] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-primary" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-on-surface-variant mb-1">Monto ($)</label>
+                        <input type="number" id="input-monto" step="0.01" placeholder="0.00" class="w-full bg-[#121212] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-primary" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-on-surface-variant mb-1">Categoría</label>
+                        <select id="select-categoria" class="w-full bg-[#121212] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-primary">
+                            <!-- Opciones cargadas dinámicamente por app.js -->
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-on-surface-variant mb-1">Fecha</label>
+                        <input type="date" id="input-fecha" class="w-full bg-[#121212] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-primary">
+                    </div>
+
+                    <button type="submit" class="w-full py-3 rounded-xl bg-primary hover:bg-amber-600 text-black font-bold text-sm tracking-wide transition shadow-lg mt-2">
+                        Guardar Movimiento
+                    </button>
+                </form>
+            </div>
+
+            <!-- HISTORIAL DE MOVIMIENTOS -->
+            <div class="lg:col-span-2 p-6 rounded-2xl bg-[#1e1e1e] border border-white/5 shadow-xl">
+                <h3 class="text-lg font-bold text-white mb-4">Historial Reciente</h3>
+                <div id="historial-movimientos" class="space-y-3">
+                    <p class="text-sm text-on-surface-variant/50 text-center py-8">No hay transacciones registradas aún.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- SCRIPT PRINCIPAL UNIFICADO -->
+    <script src="app.js"></script>
+</body>
+</html>

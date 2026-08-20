@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Dashboard Personal - Personal Finance</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-container": "#af8d11",
+                        "primary-fixed": "#ffdfa0",
+                        "secondary-fixed": "#ffe088",
+                        "tertiary-fixed": "#e5e2e1",
+                        "surface-variant": "#353534",
+                        "on-secondary": "#3c2f00",
+                        "on-tertiary-fixed-variant": "#474746",
+                        "inverse-on-surface": "#313030",
+                        "on-primary-fixed": "#261a00",
+                        "tertiary-fixed-dim": "#c8c6c5",
+                        "surface-bright": "#3a3939",
+                        "primary-fixed-dim": "#fbbc00",
+                        "on-secondary-container": "#342800",
+                        "on-secondary-fixed-variant": "#574500",
+                        "tertiary": "#e8e5e4",
+                        "primary-container": "#ffbf00",
+                        "on-surface-variant": "#d4c5ab",
+                        "primary": "#ffe2ab",
+                        "secondary": "#e9c349",
+                        "surface-container-high": "#2a2a2a",
+                        "surface-container-lowest": "#0e0e0e",
+                        "tertiary-container": "#cbc9c8",
+                        "surface-container-low": "#1c1b1b",
+                        "on-background": "#e5e2e1",
+                        "on-primary": "#402d00",
+                        "background": "#131313",
+                        "on-surface": "#e5e2e1",
+                        "surface": "#131313",
+                        "outline-variant": "#504532",
+                        "error-container": "#93000a",
+                        "on-tertiary-fixed": "#1c1b1b",
+                        "surface-dim": "#131313",
+                        "surface-tint": "#fbbc00",
+                        "on-tertiary": "#313030",
+                        "on-secondary-fixed": "#241a00",
+                        "outline": "#9c8f78",
+                        "error": "#ffb4ab",
+                        "on-primary-fixed-variant": "#5c4300",
+                        "on-error-container": "#ffdad6",
+                        "on-primary-container": "#6d5000",
+                        "surface-container-highest": "#353534",
+                        "inverse-primary": "#795900",
+                        "on-tertiary-container": "#555454",
+                        "inverse-surface": "#e5e2e1",
+                        "on-error": "#690005",
+                        "surface-container": "#201f1f",
+                        "secondary-fixed-dim": "#e9c349"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-md": "16px",
+                        "stack-lg": "32px",
+                        "unit": "8px",
+                        "stack-sm": "8px",
+                        "gutter": "16px",
+                        "container-padding": "24px"
+                    },
+                    "fontFamily": {
+                        "display-lg-mobile": ["EB Garamond"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "display-lg": ["EB Garamond"]
+                    },
+                    "fontSize": {
+                        "display-lg-mobile": ["32px", { "lineHeight": "1.2", "fontWeight": "500" }],
+                        "body-md": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "label-sm": ["12px", { "lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "headline-md": ["24px", { "lineHeight": "1.4", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "display-lg": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #0F0F0F;
+            color: #e5e2e1;
+        }
+        .glass-panel {
+            background: rgba(26, 26, 26, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .amber-glow {
+            box-shadow: 0 0 20px rgba(255, 191, 0, 0.2);
+        }
+        .card-gradient {
+            background: linear-gradient(180deg, #1F1F1F 0%, #1A1A1A 100%);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+        
+        /* Line Chart SVG Styles */
+        .chart-line {
+            fill: none;
+            stroke: #FFBF00;
+            stroke-width: 3;
+            filter: drop-shadow(0px 4px 6px rgba(255, 191, 0, 0.3));
+        }
+        .chart-area {
+            fill: url(#amber-gradient);
+            opacity: 0.2;
+        }
+    </style>
+</head>
+<body class="bg-[#0F0F0F] min-h-screen flex flex-col font-body-md text-on-surface">
+<!-- TopAppBar -->
+<header class="bg-surface dark:bg-surface flex justify-between items-center w-full px-container-padding py-stack-sm docked full-width top-0 sticky z-40 bg-surface-container-low dark:bg-surface-container-low">
+<div class="flex items-center gap-stack-md">
+<div class="w-10 h-10 rounded-full overflow-hidden border border-outline-variant">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="A macro photograph of an abstract, dark obsidian surface with subtle veins of liquid gold running through it, illuminated by a warm, focused amber light. The mood is luxurious, private, and deeply textured, reflecting a mystic functionalism aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDH5Wzwg3vr_qFwKjV1AcXqgF8C1TcmUUiR4mmu_SCg_axTveEhJ8ZDFqd6tD9oHJmi5d1VT3RbKr8mhExLrAt-s6l2aoojayEfOMEKp3uPSEYYezvTPXc50OXLtoKcXnei_IJRGMJske5ArMZEsodJMJ7m6M-uORUHj_SJf70VzrQ9jP1QjZayH3oNWXPSLXvcP6DawcjH13F5xZoYHYBPoEeTCF3U4E81r2ST9hmqEsCdNHE5ERKy"/>
+</div>
+<h1 class="font-display-lg-mobile text-display-lg-mobile text-primary dark:text-primary md:font-display-lg md:text-display-lg">Dashboard Personal</h1>
+</div>
+<button aria-label="Notifications" class="w-10 h-10 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-variant/10 transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications" style="font-variation-settings: 'FILL' 0;">notifications</span>
+</button>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<!-- NavigationDrawer (Hidden on Mobile) -->
+<nav class="hidden md:flex flex-col h-full py-stack-lg px-gutter gap-stack-md bg-surface-container-low dark:bg-surface-container-low h-full w-64 fixed left-0 top-0 z-30 pt-24 border-r border-white/5">
+<div class="px-4 mb-8">
+<div class="flex items-center gap-4 mb-2">
+<div class="w-12 h-12 rounded-full overflow-hidden border border-outline-variant">
+<img alt="Mystic User" class="w-full h-full object-cover" data-alt="A portrait-style abstract composition featuring dark, geometric glass shards catching glints of amber light against an infinite black void. The image evokes a sense of digital sanctuary and premium privacy, adhering to the mystic functionalism design language." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDSacarH7Jse9bqOvg8DZd-kkrrcBkU_Liyvb4j_Yq_3FvHzRr3eI_D4Yq_dyaDE6WXS67rhBaE9OREXGwT7lxB2eWqCQXq2PQVGQwY7TqQHAeX5DvzkaBJoMkOc96Zg--Q5aam8eCEyuZefN18fdIF40Z4MF_gzzKq3S-x7eUpqhpNnK8IMbg92x5b4qbWdLsrRkk-6MzHrwSaIFDLqVmwemHIO5iBjd0mx-9vYQjnfRAGYr_oZbK_"/>
+</div>
+<div>
+<div class="font-headline-md text-headline-md text-primary">Mystic User</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">Digital Sanctuary</div>
+</div>
+</div>
+<div class="font-label-sm text-label-sm text-primary-container bg-primary-container/10 inline-block px-2 py-1 rounded mt-2">Premium Member</div>
+</div>
+<div class="flex flex-col gap-2">
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg text-primary dark:text-primary bg-primary-container/10 dark:bg-primary-container/10 font-bold border-l-4 border-primary transition-transform translate-x-1" href="#">
+<span class="material-symbols-outlined" data-icon="account_balance_wallet" style="font-variation-settings: 'FILL' 1;">account_balance_wallet</span>
+<span class="font-body-md text-body-md">Personal Finance</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/20 dark:hover:bg-surface-variant/20 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="task_alt" style="font-variation-settings: 'FILL' 0;">task_alt</span>
+<span class="font-body-md text-body-md">Project Tracking</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg text-on-surface-variant dark:text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/20 dark:hover:bg-surface-variant/20 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="edit_note" style="font-variation-settings: 'FILL' 0;">edit_note</span>
+<span class="font-body-md text-body-md">Magic Diary</span>
+</a>
+</div>
+</nav>
+<!-- Main Content -->
+<main class="flex-1 w-full md:ml-64 p-4 md:p-container-padding overflow-y-auto pb-24 md:pb-8">
+<div class="max-w-7xl mx-auto space-y-stack-lg">
+<!-- Page Title -->
+<div class="mb-stack-md">
+<h2 class="font-display-lg-mobile text-display-lg-mobile text-primary md:font-display-lg md:text-display-lg">Finance</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-2">Overview of your sanctuary's resources.</p>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-stack-md">
+<!-- Total Balance Card (Spans 8 cols on desktop) -->
+<div class="card-gradient rounded-xl p-6 md:col-span-8 flex flex-col justify-between relative overflow-hidden group">
+<!-- Abstract ambient background glow -->
+<div class="absolute top-0 right-0 w-64 h-64 bg-primary-container rounded-full mix-blend-screen filter blur-[100px] opacity-10 transition-opacity duration-700 group-hover:opacity-20 pointer-events-none"></div>
+<div class="relative z-10">
+<div class="flex justify-between items-start mb-8">
+<div>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Total Balance</span>
+<div class="font-display-lg-mobile text-display-lg-mobile md:font-display-lg md:text-display-lg text-primary mt-2 flex items-baseline gap-2">
+                                        $42,850<span class="text-xl text-on-surface-variant">.00</span>
+</div>
+</div>
+<div class="bg-primary-container/10 px-3 py-1.5 rounded-full flex items-center gap-1 amber-glow">
+<span class="material-symbols-outlined text-primary-container text-sm" data-icon="trending_up">trending_up</span>
+<span class="font-label-sm text-label-sm text-primary-container">+12.5%</span>
+</div>
+</div>
+<!-- Small Line Chart SVG -->
+<div class="h-32 w-full mt-4">
+<svg class="w-full h-full preserve-aspect-ratio-none" viewbox="0 0 400 100">
+<defs>
+<lineargradient id="amber-gradient" x1="0%" x2="0%" y1="0%" y2="100%">
+<stop offset="0%" stop-color="#FFBF00" stop-opacity="0.4"></stop>
+<stop offset="100%" stop-color="#FFBF00" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+<path class="chart-area" d="M0,100 L0,60 C50,60 100,80 150,50 C200,20 250,70 300,40 C350,10 380,30 400,20 L400,100 Z"></path>
+<path class="chart-line" d="M0,60 C50,60 100,80 150,50 C200,20 250,70 300,40 C350,10 380,30 400,20"></path>
+<!-- Data points glowing dots -->
+<circle class="amber-glow" cx="150" cy="50" fill="#1A1A1A" r="4" stroke="#FFBF00" stroke-width="2"></circle>
+<circle class="amber-glow" cx="300" cy="40" fill="#1A1A1A" r="4" stroke="#FFBF00" stroke-width="2"></circle>
+<circle cx="400" cy="20" fill="#FFBF00" r="4"></circle>
+</svg>
+</div>
+</div>
+</div>
+<!-- Monthly Budget Progress (Spans 4 cols on desktop) -->
+<div class="card-gradient rounded-xl p-6 md:col-span-4 flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-center mb-6">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Monthly Budget</span>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]" data-icon="more_horiz">more_horiz</span>
+</button>
+</div>
+<div class="mb-2">
+<div class="font-headline-md text-headline-md text-on-surface">$2,450 <span class="text-sm text-on-surface-variant font-normal">/ $4,000</span></div>
+</div>
+</div>
+<div class="space-y-6 mt-auto">
+<!-- Circular Progress Indicator (Simulated with SVG) -->
+<div class="relative w-32 h-32 mx-auto flex items-center justify-center">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 100 100">
+<circle cx="50" cy="50" fill="none" r="45" stroke="rgba(255, 255, 255, 0.05)" stroke-width="8"></circle>
+<circle class="amber-glow" cx="50" cy="50" fill="none" r="45" stroke="#FFBF00" stroke-dasharray="283" stroke-dashoffset="100" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="font-headline-md text-headline-md text-primary">61%</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Used</span>
+</div>
+</div>
+<div class="space-y-3">
+<div class="flex justify-between items-center text-sm">
+<span class="text-on-surface-variant flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-primary-container"></span> Essentials</span>
+<span class="text-on-surface">$1,200</span>
+</div>
+<div class="flex justify-between items-center text-sm">
+<span class="text-on-surface-variant flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-outline"></span> Discretionary</span>
+<span class="text-on-surface">$850</span>
+</div>
+<div class="flex justify-between items-center text-sm">
+<span class="text-on-surface-variant flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-surface-variant"></span> Savings</span>
+<span class="text-on-surface">$400</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Recent Transactions (Spans full width) -->
+<div class="glass-panel rounded-xl p-6 md:col-span-12">
+<div class="flex justify-between items-center mb-6 border-b border-white/5 pb-4">
+<h3 class="font-headline-md text-headline-md text-primary">Recent Transactions</h3>
+<button class="font-label-sm text-label-sm text-primary-container hover:text-primary transition-colors flex items-center gap-1">
+                                View All <span class="material-symbols-outlined text-[16px]" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+<div class="space-y-4">
+<!-- Transaction Item -->
+<div class="flex items-center justify-between p-3 rounded-lg hover:bg-[#1F1F1F] transition-colors group">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-[#1A1A1A] border border-white/5 flex items-center justify-center group-hover:border-primary/30 transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors" data-icon="restaurant">restaurant</span>
+</div>
+<div>
+<div class="font-body-md text-body-md text-on-surface font-medium">Mystic Cafe</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">Today, 2:45 PM • Dining</div>
+</div>
+</div>
+<div class="font-body-md text-body-md text-on-surface font-medium">
+                                    -$42.50
+                                </div>
+</div>
+<!-- Transaction Item -->
+<div class="flex items-center justify-between p-3 rounded-lg hover:bg-[#1F1F1F] transition-colors group">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-[#1A1A1A] border border-white/5 flex items-center justify-center group-hover:border-primary/30 transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors" data-icon="shopping_bag">shopping_bag</span>
+</div>
+<div>
+<div class="font-body-md text-body-md text-on-surface font-medium">Obsidian Market</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">Yesterday, 11:20 AM • Groceries</div>
+</div>
+</div>
+<div class="font-body-md text-body-md text-on-surface font-medium">
+                                    -$128.90
+                                </div>
+</div>
+<!-- Transaction Item -->
+<div class="flex items-center justify-between p-3 rounded-lg hover:bg-[#1F1F1F] transition-colors group">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-[#1A1A1A] border border-white/5 flex items-center justify-center group-hover:border-primary/30 transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors" data-icon="auto_awesome">auto_awesome</span>
+</div>
+<div>
+<div class="font-body-md text-body-md text-on-surface font-medium">Sanctuary Subscription</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">Oct 24, 2023 • Software</div>
+</div>
+</div>
+<div class="font-body-md text-body-md text-on-surface font-medium">
+                                    -$15.00
+                                </div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="bg-surface-container dark:bg-surface-container shadow-md fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-gutter py-stack-sm md:hidden">
+<a class="flex flex-col items-center justify-center bg-secondary-container/20 dark:bg-secondary-container/20 text-primary dark:text-primary rounded-xl px-stack-md py-1 scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="payments" style="font-variation-settings: 'FILL' 1;">payments</span>
+<span class="font-label-sm text-label-sm mt-1">Finance</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="auto_awesome_motion" style="font-variation-settings: 'FILL' 0;">auto_awesome_motion</span>
+<span class="font-label-sm text-label-sm mt-1">Tracking</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="auto_stories" style="font-variation-settings: 'FILL' 0;">auto_stories</span>
+<span class="font-label-sm text-label-sm mt-1">Diary</span>
+</a>
+</nav>
+</body></html>
