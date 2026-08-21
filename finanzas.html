@@ -32,33 +32,55 @@
 <body class="h-full bg-[#121212] text-on-surface font-sans antialiased flex overflow-hidden">
 
     <!-- BARRA LATERAL (SIDEBAR) -->
-    <aside class="w-64 bg-[#1e1e1e] border-r border-white/5 p-6 flex flex-col justify-between shrink-0 h-screen">
-        <div>
-            <!-- LOGO / CABECERA -->
-            <div class="mb-8">
-                <h1 class="text-xl font-black tracking-wider text-primary">Sanctuary JHEV</h1>
-                <p class="text-xs text-on-surface-variant/60 font-medium mt-0.5">Gestor Personal & Bitácora</p>
-            </div>
+ <!-- MENÚ LATERAL (Oculto en celulares, visible en pantallas medianas/computadoras) -->
+<aside class="-translate-x-full md:translate-x-0 fixed md:static top-0 left-0 z-50 transition-transform duration-300 w-64 h-screen bg-[#1e1e1e] ...">
 
-            <!-- NAVEGACIÓN -->
-            <nav class="space-y-1.5">
-                <a href="index.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-on-surface-variant hover:text-white font-medium text-sm transition">
-                    <span class="material-symbols-outlined text-xl">dashboard</span>
-                    <span>Dashboard</span>
-                </a>
-                <a href="finanzas.html" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-amber-500/20 text-amber-300 font-bold text-sm tracking-wide">
-                    <span class="material-symbols-outlined text-xl">payments</span>
-                    <span>Finanzas</span>
-                </a>
-                <a href="rituales.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-on-surface-variant hover:text-white font-medium text-sm transition">
-                    <span class="material-symbols-outlined text-xl">auto_awesome</span>
-                    <span>Rituales & Proyectos</span>
-                </a>
-                <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-on-surface-variant hover:text-white font-medium text-sm transition opacity-50 cursor-not-allowed">
-                    <span class="material-symbols-outlined text-xl">edit_note</span>
-                    <span>Diario Mágico</span>
-                </a>
-            </nav>
+<!-- Botón flotante para abrir/cerrar menú en celular -->
+<button onclick="document.querySelector('aside').classList.toggle('-translate-x-full')" 
+        class="md:hidden fixed top-4 left-4 z-[60] bg-amber-500 text-black p-2 rounded-xl shadow-lg flex items-center justify-center">
+    <span class="material-symbols-outlined">menu</span>
+</button>
+
+    <div class="space-y-8">
+        <!-- Logo y Título -->
+        <div>
+            <h1 class="text-xl font-black text-amber-500 uppercase tracking-wider">Sanctuary JHEV</h1>
+            <p class="text-xs text-white/40 mt-1">Gestor Personal & Bitácora</p>
+        </div>
+
+        <!-- Enlaces de Navegación Desktop -->
+        <nav class="space-y-2">
+            <a href="index.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-white/70 hover:bg-white/5 hover:text-white transition">
+                <span class="material-symbols-outlined">dashboard</span>
+                <span>Dashboard</span>
+            </a>
+            <a href="finanzas.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-white/70 hover:bg-white/5 hover:text-white transition">
+                <span class="material-symbols-outlined">account_balance_wallet</span>
+                <span>Finanzas</span>
+            </a>
+            <a href="rituales.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-white/70 hover:bg-white/5 hover:text-white transition">
+                <span class="material-symbols-outlined">auto_awesome</span>
+                <span>Rituales & Proyectos</span>
+            </a>
+        </nav>
+    </div>
+</aside>
+
+<!-- BARRA DE NAVEGACIÓN INFERIOR (Solo visible en celulares) -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 bg-[#1e1e1e] border-t border-white/10 flex justify-around items-center py-3 z-50 shadow-lg">
+    <a href="index.html" class="flex flex-col items-center text-white/60 hover:text-amber-500 text-xs">
+        <span class="material-symbols-outlined">dashboard</span>
+        <span class="text-[10px] mt-0.5">Inicio</span>
+    </a>
+    <a href="finanzas.html" class="flex flex-col items-center text-white/60 hover:text-amber-500 text-xs">
+        <span class="material-symbols-outlined">account_balance_wallet</span>
+        <span class="text-[10px]">Finanzas</span>
+    </a>
+    <a href="rituales.html" class="flex flex-col items-center text-white/60 hover:text-amber-500 text-xs">
+        <span class="material-symbols-outlined">auto_awesome</span>
+        <span class="text-[10px]">Proyectos</span>
+    </a>
+</nav>
         </div>
 
         <!-- FOOTER SIDEBAR / PERFIL -->
