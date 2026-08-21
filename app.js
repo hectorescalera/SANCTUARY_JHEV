@@ -1,28 +1,14 @@
 // ==========================================
-// SANCTUARY JHEV - APP.JS (UNIFICADO CORREGIDO)
+// CONFIGURACIÓN GLOBAL Y UTILIDADES
 // ==========================================
-
 const STORAGE_KEYS = {
-    FINANZAS: 'sanctuary_finanzas',
-    ACTIVIDADES: 'sanctuary_actividades'
+    FINANZAS: 'sanctuary_finanzas_v2',
+    ACTIVIDADES: 'sanctuary_actividades_v2'
 };
 
-const CATEGORIAS = {
-    ingreso: [
-        'Música / Le Garbo',
-        'Desarrollo Web / Freelance',
-        'Servicios Técnicos / Mantenimiento',
-        'Ventas / Eventos',
-        'Otros Ingresos'
-    ],
-    gasto: [
-        'Música / Equipo y Cuerdas',
-        'Materiales / Insumos',
-        'Hosting / Software / Herramientas',
-        'Alimentación / Personal',
-        'Hogar / Servicios',
-        'Otros Gastos'
-    ]
+const CATEGORIAS_DEFAULT = {
+    gasto: ['Servicios', 'Alimentación', 'Música & Equipo', 'Desarrollo & Herramientas', 'Personal', 'Gasolina', 'Otros'],
+    ingreso: ['Eventos / Trío Le Garbo', 'Desarrollo Web', 'Clases / Asesorías', 'Ventas', 'Otros']
 };
 
 const formatoMoneda = new Intl.NumberFormat('es-MX', {
@@ -34,127 +20,60 @@ function obtenerFechaHoy() {
     return new Date().toISOString().split('T')[0];
 }
 
+let graficoInstancia = null;
+
 // ==========================================
-// CONTROL DE DATOS (LOCALSTORAGE)
+// MANEJO DE LOCALSTORAGE
 // ==========================================
 function obtenerDatosFinanzas() {
-    try {
-        const data = localStorage.getItem(STORAGE_KEYS.FINANZAS);
-        if (data) return JSON.parse(data);
-    } catch (e) {
-        console.error("Error al leer finanzas:", e);
-    }
-    return { totalIngresos: 0, totalGastos: 0, totalAcumulado: 0, movimientos: [] };
+    const data = localStorage.getItem(STORAGE_KEYS.FINANZAS);
+    return data ? JSON.parse(data) : { ingresos: 0, gastos: 0, totalAcumulado: 0, movimientos: [] };
 }
 
-function guardarDatosFinanzas(datos) {
-    let ingresos = 0;
-    let gastos = 0;
-
-    datos.movimientos.forEach(m => {
-        const monto = parseFloat(m.monto) || 0;
-        if (m.tipo === 'gasto') gastos += monto;
-        else ingresos += monto;
-    });
-
-    datos.totalIngresos = ingresos;
-    datos.totalGastos = gastos;
-    datos.totalAcumulado = ingresos - gastos;
-
-    localStorage.setItem(STORAGE_KEYS.FINANZAS, JSON.stringify(datos));
-    return datos;
+function guardarDatosFinanzas(data) {
+    localStorage.setItem(STORAGE_KEYS.FINANZAS, JSON.stringify(data));
 }
 
 function obtenerDatosActividades() {
-    try {
-        const data = localStorage.getItem(STORAGE_KEYS.ACTIVIDADES);
-        if (data) return JSON.parse(data);
-    } catch (e) {
-        console.error("Error al leer actividades:", e);
-    }
-    return [];
+    const data = localStorage.getItem(STORAGE_KEYS.ACTIVIDADES);
+    return data ? JSON.parse(data) : [];
 }
 
-function guardarDatosActividades(actividades) {
-    localStorage.setItem(STORAGE_KEYS.ACTIVIDADES, JSON.stringify(actividades));
+function guardarDatosActividades(data) {
+    localStorage.setItem(STORAGE_KEYS.ACTIVIDADES, JSON.stringify(data));
 }
 
 // ==========================================
-// FUNCIONES GLOBALES DE INTERACCIÓN DE PROYECTOS/RITUALES
-// ==========================================
-window.marcarDiaRitual = function(actIndex) {
-    const actividades = obtenerDatosActividades();
-    if (actividades[actIndex]) {
-        actividades[actIndex].diasCompletados = (actividades[actIndex].diasCompletados || 0) + 1;
-        guardarDatosActividades(actividades);
-        if (typeof window.renderActividades === 'function') window.renderActividades();
-    }
-};
-
-window.agregarTarea = function(actIndex) {
-    const input = document.getElementById(`nueva-tarea-${actIndex}`);
-    if (!input || !input.value.trim()) return;
-
-    const actividades = obtenerDatosActividades();
-    if (actividades[actIndex]) {
-        if (!actividades[actIndex].tareas) actividades[actIndex].tareas = [];
-        actividades[actIndex].tareas.push({ texto: input.value.trim(), completada: false });
-        guardarDatosActividades(actividades);
-        if (typeof window.renderActividades === 'function') window.renderActividades();
-    }
-};
-
-window.toggleTarea = function(actIndex, tIndex) {
-    const actividades = obtenerDatosActividades();
-    if (actividades[actIndex] && actividades[actIndex].tareas[tIndex]) {
-        actividades[actIndex].tareas[tIndex].completada = !actividades[actIndex].tareas[tIndex].completada;
-        guardarDatosActividades(actividades);
-        if (typeof window.renderActividades === 'function') window.renderActividades();
-    }
-};
-
-window.eliminarTarea = function(actIndex, tIndex) {
-    const actividades = obtenerDatosActividades();
-    if (actividades[actIndex] && actividades[actIndex].tareas) {
-        actividades[actIndex].tareas.splice(tIndex, 1);
-        guardarDatosActividades(actividades);
-        if (typeof window.renderActividades === 'function') window.renderActividades();
-    }
-};
-
-window.eliminarActividad = function(actIndex) {
-    if (confirm('¿Deseas eliminar este registro?')) {
-        const actividades = obtenerDatosActividades();
-        actividades.splice(actIndex, 1);
-        guardarDatosActividades(actividades);
-        if (typeof window.renderActividades === 'function') window.renderActividades();
-    }
-};
-
-// ==========================================
-// 1. VISTA: DASHBOARD (index.html)
+// 1. VISTA: DASHBOARD (index.html) - SOLO LECTURA
 // ==========================================
 function cargarDashboard() {
     const finanzas = obtenerDatosFinanzas();
     const actividades = obtenerDatosActividades();
 
-    const elementosTexto = document.querySelectorAll('div, p, span');
-    const tarjetaAcumulado = Array.from(elementosTexto).find(el => el.textContent.includes('ACUMULADO FINANZAS'));
-    
-    if (tarjetaAcumulado) {
-        const contenedorPadre = tarjetaAcumulado.closest('div');
-        if (contenedorPadre) {
-            const elMonto = Array.from(contenedorPadre.querySelectorAll('*')).find(el => 
-                el.textContent.includes('$') || 
-                el.classList.contains('text-2xl') || 
-                el.classList.contains('text-3xl')
-            );
-            if (elMonto) {
-                elMonto.textContent = formatoMoneda.format(finanzas.totalAcumulado);
-            }
-        }
+    // 1. Obtener balance desde totalAcumulado o calcularlo directamente desde ingresos - gastos
+    let balanceGlobalReal = 0;
+
+    if (typeof finanzas.totalAcumulado !== 'undefined') {
+        balanceGlobalReal = Number(finanzas.totalAcumulado);
+    } else if (typeof finanzas.ingresos !== 'undefined' && typeof finanzas.gastos !== 'undefined') {
+        balanceGlobalReal = Number(finanzas.ingresos) - Number(finanzas.gastos);
+    } else if (finanzas.movimientos && Array.isArray(finanzas.movimientos)) {
+        let totalIngresos = 0;
+        let totalGastos = 0;
+        finanzas.movimientos.forEach(m => {
+            if (m.tipo === 'ingreso') totalIngresos += Number(m.monto) || 0;
+            else totalGastos += Number(m.monto) || 0;
+        });
+        balanceGlobalReal = totalIngresos - totalGastos;
     }
 
+    // Busca los posibles IDs con los que esté maquetado el monto en index.html
+    const elMontoAcumulado = document.getElementById('monto-acumulado') || document.getElementById('total-acumulado');
+    if (elMontoAcumulado) {
+        elMontoAcumulado.textContent = formatoMoneda.format(balanceGlobalReal);
+    }
+
+    // 2. Tarjetas Informativas de Avance
     const contenedorResumen = document.querySelector('#resumen-actividades');
 
     if (contenedorResumen) {
@@ -175,8 +94,11 @@ function cargarDashboard() {
             const esRitual = act.tipo === 'ritual';
 
             let avancePorcentaje = 0;
+
             if (esRitual) {
-                avancePorcentaje = act.diasCompletados ? Math.round((act.diasCompletados / act.duracion) * 100) : 0;
+                const duracion = act.duracion || 7;
+                const completados = act.registroDias ? Object.keys(act.registroDias).length : (act.diasCompletados || 0);
+                avancePorcentaje = Math.min(100, Math.round((completados / duracion) * 100));
             } else {
                 const totalTareas = act.tareas ? act.tareas.length : 0;
                 const completadas = act.tareas ? act.tareas.filter(t => t.completada).length : 0;
@@ -184,13 +106,15 @@ function cargarDashboard() {
             }
 
             tarjeta.innerHTML = `
-                <div class="flex justify-between items-center">
-                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${esRitual ? 'bg-amber-500/20 text-amber-300' : 'bg-blue-500/20 text-blue-300'}">
-                        ${esRitual ? 'Ritual' : 'Proyecto'}
-                    </span>
-                    <span class="text-[11px] text-white/50">${act.fecha}</span>
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${esRitual ? 'bg-amber-500/20 text-amber-300' : 'bg-blue-500/20 text-blue-300'}">
+                            ${esRitual ? 'Ritual' : 'Proyecto'}
+                        </span>
+                        <span class="text-[11px] text-white/40">${act.fecha}</span>
+                    </div>
+                    <h3 class="text-base font-bold text-white uppercase tracking-wide">${act.nombre}</h3>
                 </div>
-                <h3 class="text-base font-bold text-white uppercase tracking-wide mt-1">${act.nombre}</h3>
                 
                 <div class="mt-2">
                     <div class="flex justify-between text-xs text-white/70 mb-1">
@@ -198,7 +122,7 @@ function cargarDashboard() {
                         <span class="font-bold text-amber-400">${avancePorcentaje}%</span>
                     </div>
                     <div class="w-full bg-white/10 h-2 rounded-full overflow-hidden">
-                        <div class="bg-primary h-full transition-all duration-300" style="width: ${avancePorcentaje}%"></div>
+                        <div class="${esRitual ? 'bg-amber-500' : 'bg-blue-500'} h-full transition-all duration-300" style="width: ${avancePorcentaje}%"></div>
                     </div>
                 </div>
             `;
@@ -210,16 +134,23 @@ function cargarDashboard() {
 // ==========================================
 // 2. VISTA: FINANZAS (finanzas.html)
 // ==========================================
-function cargarVistaFinanzas() {
+function inicializarFinanzas() {
+    const formFinanzas = document.getElementById('form-finanzas');
     const selectTipo = document.getElementById('select-tipo');
     const selectCategoria = document.getElementById('select-categoria');
+    const inputFecha = document.getElementById('input-fecha');
+    const selectMesFiltro = document.getElementById('select-mes-filtro');
+
+    if (!formFinanzas) return;
+
+    if (inputFecha && !inputFecha.value) {
+        inputFecha.value = obtenerFechaHoy();
+    }
 
     function actualizarCategorias() {
-        if (!selectTipo || !selectCategoria) return;
-        const tipoVal = selectTipo.value === 'ingreso' ? 'ingreso' : 'gasto';
+        const tipo = selectTipo.value;
         selectCategoria.innerHTML = '';
-
-        CATEGORIAS[tipoVal].forEach(cat => {
+        CATEGORIAS_DEFAULT[tipo].forEach(cat => {
             const option = document.createElement('option');
             option.value = cat;
             option.textContent = cat;
@@ -227,304 +158,491 @@ function cargarVistaFinanzas() {
         });
     }
 
-    if (selectTipo) {
-        selectTipo.addEventListener('change', actualizarCategorias);
-        actualizarCategorias();
+    selectTipo.addEventListener('change', actualizarCategorias);
+    actualizarCategorias();
+
+    if (selectMesFiltro) {
+        selectMesFiltro.addEventListener('change', () => {
+            renderizarFinanzas(selectMesFiltro.value);
+        });
     }
 
-    function render() {
+    formFinanzas.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const tipo = selectTipo.value;
+        const concepto = document.getElementById('input-concepto').value.trim();
+        const monto = parseFloat(document.getElementById('input-monto').value);
+        const categoria = selectCategoria.value;
+        const fecha = inputFecha.value || obtenerFechaHoy();
+
+        if (!concepto || isNaN(monto) || monto <= 0) return;
+
         const finanzas = obtenerDatosFinanzas();
+        const nuevoMovimiento = {
+            id: Date.now(),
+            tipo,
+            concepto,
+            monto,
+            categoria,
+            fecha
+        };
 
-        const elIngresos = document.getElementById('monto-ingresos');
-        const elGastos = document.getElementById('monto-gastos');
-        const elNeto = document.getElementById('monto-neto');
+        if (!finanzas.movimientos) finanzas.movimientos = [];
+        finanzas.movimientos.unshift(nuevoMovimiento);
 
-        if (elIngresos) elIngresos.textContent = formatoMoneda.format(finanzas.totalIngresos);
-        if (elGastos) elGastos.textContent = formatoMoneda.format(finanzas.totalGastos);
-        if (elNeto) elNeto.textContent = formatoMoneda.format(finanzas.totalAcumulado);
+        // Recalcular acumulados globales
+        let ing = 0;
+        let gas = 0;
+        finanzas.movimientos.forEach(m => {
+            if (m.tipo === 'ingreso') ing += Number(m.monto);
+            else gas += Number(m.monto);
+        });
+        finanzas.ingresos = ing;
+        finanzas.gastos = gas;
+        finanzas.totalAcumulado = ing - gas;
 
-        const lista = document.getElementById('historial-movimientos');
-        if (lista) {
-            lista.innerHTML = '';
+        guardarDatosFinanzas(finanzas);
+        formFinanzas.reset();
+        if (inputFecha) inputFecha.value = obtenerFechaHoy();
+        actualizarCategorias();
+        poblarOpcionesMeses();
+        renderizarFinanzas();
+    });
 
-            if (finanzas.movimientos.length === 0) {
-                lista.innerHTML = '<p class="text-sm text-on-surface-variant/50 text-center py-8">No hay transacciones registradas aún.</p>';
-                return;
+    poblarOpcionesMeses();
+    renderizarFinanzas();
+}
+
+function poblarOpcionesMeses() {
+    const selectMesFiltro = document.getElementById('select-mes-filtro');
+    if (!selectMesFiltro) return;
+
+    const finanzas = obtenerDatosFinanzas();
+    const mesesSet = new Set();
+
+    const mesActual = obtenerFechaHoy().slice(0, 7);
+    mesesSet.add(mesActual);
+
+    if (finanzas.movimientos) {
+        finanzas.movimientos.forEach(m => {
+            if (m.fecha) {
+                mesesSet.add(m.fecha.slice(0, 7));
             }
+        });
+    }
 
-            finanzas.movimientos.forEach(m => {
-                const esGasto = m.tipo === 'gasto';
+    const mesesOrdenados = Array.from(mesesSet).sort().reverse();
+    const valorSeleccionado = selectMesFiltro.value || mesActual;
+
+    selectMesFiltro.innerHTML = '<option value="todos">Todos los meses</option>';
+    mesesOrdenados.forEach(mes => {
+        const option = document.createElement('option');
+        option.value = mes;
+        option.textContent = mes;
+        selectMesFiltro.appendChild(option);
+    });
+
+    selectMesFiltro.value = valorSeleccionado;
+}
+
+function renderizarFinanzas(filtroMes = null) {
+    const finanzas = obtenerDatosFinanzas();
+    const selectMesFiltro = document.getElementById('select-mes-filtro');
+
+    const mesActivo = filtroMes || (selectMesFiltro ? selectMesFiltro.value : 'todos');
+    const movimientos = finanzas.movimientos || [];
+
+    const movimientosFiltrados = movimientos.filter(m => {
+        if (!mesActivo || mesActivo === 'todos') return true;
+        return m.fecha && m.fecha.startsWith(mesActivo);
+    });
+
+    let ingresosPeriodo = 0;
+    let gastosPeriodo = 0;
+
+    movimientosFiltrados.forEach(m => {
+        if (m.tipo === 'ingreso') ingresosPeriodo += Number(m.monto);
+        else gastosPeriodo += Number(m.monto);
+    });
+
+    const elIngresos = document.getElementById('monto-ingresos');
+    const elGastos = document.getElementById('monto-gastos');
+    const elNeto = document.getElementById('monto-neto');
+    const elHistorial = document.getElementById('historial-movimientos');
+
+    if (elIngresos) elIngresos.textContent = formatoMoneda.format(ingresosPeriodo);
+    if (elGastos) elGastos.textContent = formatoMoneda.format(gastosPeriodo);
+    if (elNeto) elNeto.textContent = formatoMoneda.format(ingresosPeriodo - gastosPeriodo);
+
+    if (elHistorial) {
+        if (movimientosFiltrados.length === 0) {
+            elHistorial.innerHTML = '<p class="text-sm text-on-surface-variant/50 text-center py-8">No hay transacciones registradas en este periodo.</p>';
+        } else {
+            elHistorial.innerHTML = '';
+            movimientosFiltrados.forEach(mov => {
                 const item = document.createElement('div');
-                item.className = 'flex justify-between items-center p-3.5 rounded-xl bg-white/5 border border-white/5';
-                
+                item.className = 'p-4 rounded-xl bg-[#121212] border border-white/5 flex items-center justify-between gap-4';
+                const esIngreso = mov.tipo === 'ingreso';
+
                 item.innerHTML = `
                     <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-full flex items-center justify-center ${esGasto ? 'bg-red-500/10 text-red-400' : 'bg-emerald-500/10 text-emerald-400'}">
-                            <span class="material-symbols-outlined text-sm">${esGasto ? 'arrow_downward' : 'arrow_upward'}</span>
+                        <div class="w-10 h-10 rounded-xl ${esIngreso ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'} flex items-center justify-center shrink-0">
+                            <span class="material-symbols-outlined">${esIngreso ? 'arrow_upward' : 'arrow_downward'}</span>
                         </div>
                         <div>
-                            <div class="text-sm font-semibold text-white">${m.concepto}</div>
-                            <div class="text-[11px] text-white/50">${m.categoria} • ${m.fecha}</div>
+                            <h4 class="text-sm font-bold text-white">${mov.concepto}</h4>
+                            <p class="text-xs text-on-surface-variant/60">${mov.categoria} • ${mov.fecha}</p>
                         </div>
                     </div>
-                    <div class="font-bold text-sm ${esGasto ? 'text-red-400' : 'text-emerald-400'}">
-                        ${esGasto ? '-' : '+'}${formatoMoneda.format(m.monto)}
+                    <div class="flex items-center gap-4">
+                        <span class="text-sm font-black ${esIngreso ? 'text-emerald-400' : 'text-red-400'}">
+                            ${esIngreso ? '+' : '-'}${formatoMoneda.format(mov.monto)}
+                        </span>
+                        <button onclick="eliminarMovimiento(${mov.id})" class="text-on-surface-variant/40 hover:text-red-400 transition">
+                            <span class="material-symbols-outlined text-lg">delete</span>
+                        </button>
                     </div>
                 `;
-                lista.appendChild(item);
+                elHistorial.appendChild(item);
             });
         }
     }
 
-    render();
+    renderizarGrafico(ingresosPeriodo, gastosPeriodo);
+}
 
-    const form = document.getElementById('form-finanzas');
-    if (form) {
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
+function renderizarGrafico(ingresos, gastos) {
+    const canvas = document.getElementById('graficoFinanzas');
+    if (!canvas || typeof Chart === 'undefined') return;
 
-            const inputConcepto = document.getElementById('input-concepto');
-            const inputMonto = document.getElementById('input-monto');
-            const inputFecha = document.getElementById('input-fecha');
-
-            const conceptoVal = inputConcepto ? inputConcepto.value.trim() : '';
-            const montoVal = parseFloat(inputMonto ? inputMonto.value : 0);
-
-            if (!conceptoVal || isNaN(montoVal) || montoVal <= 0) {
-                alert('Por favor ingresa un concepto y un monto válido.');
-                return;
-            }
-
-            const finanzas = obtenerDatosFinanzas();
-            finanzas.movimientos.unshift({
-                id: Date.now().toString(),
-                tipo: selectTipo ? selectTipo.value : 'gasto',
-                concepto: conceptoVal,
-                monto: montoVal,
-                categoria: selectCategoria ? selectCategoria.value : 'General',
-                fecha: (inputFecha && inputFecha.value) ? inputFecha.value : obtenerFechaHoy()
-            });
-
-            guardarDatosFinanzas(finanzas);
-
-            if (inputConcepto) inputConcepto.value = '';
-            if (inputMonto) inputMonto.value = '';
-
-            render();
-        });
+    if (graficoInstancia) {
+        graficoInstancia.destroy();
     }
+
+    const ctx = canvas.getContext('2d');
+    graficoInstancia = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Ingresos', 'Gastos'],
+            datasets: [{
+                data: [ingresos, gastos],
+                backgroundColor: ['#10b981', '#ef4444'],
+                borderRadius: 8,
+                barThickness: 28
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                x: {
+                    grid: { display: false },
+                    ticks: { color: '#a3a3a3', font: { size: 11 } }
+                },
+                y: {
+                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                    ticks: { color: '#a3a3a3', font: { size: 10 } }
+                }
+            }
+        }
+    });
+}
+
+function eliminarMovimiento(id) {
+    const finanzas = obtenerDatosFinanzas();
+    if (!finanzas.movimientos) return;
+
+    finanzas.movimientos = finanzas.movimientos.filter(m => m.id !== id);
+
+    let ing = 0;
+    let gas = 0;
+    finanzas.movimientos.forEach(m => {
+        if (m.tipo === 'ingreso') ing += Number(m.monto);
+        else gas += Number(m.monto);
+    });
+    finanzas.ingresos = ing;
+    finanzas.gastos = gas;
+    finanzas.totalAcumulado = ing - gas;
+
+    guardarDatosFinanzas(finanzas);
+    poblarOpcionesMeses();
+    renderizarFinanzas();
 }
 
 // ==========================================
 // 3. VISTA: RITUALES Y PROYECTOS (rituales.html)
 // ==========================================
-function cargarVistaRituales() {
+function inicializarRituales() {
+    const formRituales = document.getElementById('form-rituales');
     const selectTipoAct = document.getElementById('select-tipo-act');
     const camposRitual = document.getElementById('campos-ritual');
     const camposProyecto = document.getElementById('campos-proyecto');
+    const inputFechaAct = document.getElementById('input-fecha-act');
 
-    if (selectTipoAct) {
-        selectTipoAct.addEventListener('change', () => {
-            const esRitual = selectTipoAct.value === 'ritual';
-            if (esRitual) {
-                camposRitual.classList.remove('hidden');
-                camposProyecto.classList.add('hidden');
-            } else {
-                camposRitual.classList.add('hidden');
-                camposProyecto.classList.remove('hidden');
-            }
-        });
+    if (!formRituales) return;
+
+    if (inputFechaAct && !inputFechaAct.value) {
+        inputFechaAct.value = obtenerFechaHoy();
     }
 
-    window.renderActividades = function() {
+    selectTipoAct.addEventListener('change', () => {
+        if (selectTipoAct.value === 'ritual') {
+            camposRitual.classList.remove('hidden');
+            camposProyecto.classList.add('hidden');
+        } else {
+            camposRitual.classList.add('hidden');
+            camposProyecto.classList.remove('hidden');
+        }
+    });
+
+    formRituales.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const tipo = selectTipoAct.value;
+        const nombre = document.getElementById('input-nombre-act').value.trim();
+        const fecha = inputFechaAct.value || obtenerFechaHoy();
+        const notas = document.getElementById('input-notas-act').value.trim();
+
+        if (!nombre) return;
+
         const actividades = obtenerDatosActividades();
-        const contenedor = document.getElementById('actividades-lista');
+        const nuevaActividad = {
+            id: Date.now(),
+            tipo,
+            nombre,
+            fecha,
+            notas
+        };
 
-        if (!contenedor) return;
-        contenedor.innerHTML = '';
-
-        if (actividades.length === 0) {
-            contenedor.innerHTML = '<p class="text-sm text-on-surface-variant/50 text-center py-8">No hay rituales o proyectos registrados.</p>';
-            return;
+        if (tipo === 'ritual') {
+            nuevaActividad.duracion = parseInt(document.getElementById('input-duracion').value) || 7;
+            nuevaActividad.registroDias = {};
+            nuevaActividad.diasCompletados = 0;
+        } else {
+            nuevaActividad.linkLive = document.getElementById('input-link-live').value.trim();
+            nuevaActividad.linkRepo = document.getElementById('input-link-repo').value.trim();
+            nuevaActividad.tareas = [];
         }
 
-        actividades.forEach((act, actIndex) => {
-            const card = document.createElement('div');
-            card.className = 'p-6 rounded-2xl bg-[#1e1e1e] border border-white/5 shadow-xl space-y-4';
-            const esRitual = act.tipo === 'ritual';
+        actividades.unshift(nuevaActividad);
+        guardarDatosActividades(actividades);
 
-            if (esRitual) {
-                const duracion = act.duracion || 7;
-                const completados = act.diasCompletados || 0;
-                const pct = Math.round((completados / duracion) * 100);
+        formRituales.reset();
+        if (inputFechaAct) inputFechaAct.value = obtenerFechaHoy();
+        selectTipoAct.dispatchEvent(new Event('change'));
+        renderizarActividades();
+    });
 
-                card.innerHTML = `
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-amber-500/20 text-amber-300">
-                                Ritual Magia
-                            </span>
-                            <h4 class="text-lg font-bold text-white mt-2">${act.nombre}</h4>
-                            <p class="text-xs text-white/50 mt-0.5">${act.notas || 'Sin especificaciones.'}</p>
-                        </div>
-                        <span class="text-xs text-white/40">${act.fecha}</span>
-                    </div>
+    renderizarActividades();
+}
 
-                    <div>
-                        <div class="flex justify-between text-xs text-white/70 mb-1">
-                            <span>Días Completados: ${completados} / ${duracion}</span>
-                            <span class="font-bold text-amber-400">${pct}%</span>
-                        </div>
-                        <div class="w-full bg-white/10 h-2 rounded-full overflow-hidden">
-                            <div class="bg-amber-500 h-full transition-all" style="width: ${pct}%"></div>
-                        </div>
-                    </div>
+function toggleDiaRitual(id, numeroDia) {
+    const actividades = obtenerDatosActividades();
+    const act = actividades.find(a => a.id === id);
 
-                    <div class="flex gap-2 pt-2">
-                        <button onclick="marcarDiaRitual(${actIndex})" class="px-4 py-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 text-xs font-bold rounded-xl transition flex items-center gap-1.5">
-                            <span class="material-symbols-outlined text-base">done</span>
-                            <span>Marcar Día Cumplido (+1)</span>
-                        </button>
-                        <button onclick="eliminarActividad(${actIndex})" class="px-3 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-bold rounded-xl transition ml-auto">
-                            Eliminar
-                        </button>
-                    </div>
-                `;
+    if (act && act.tipo === 'ritual') {
+        if (!act.registroDias) act.registroDias = {};
+
+        if (act.registroDias[numeroDia]) {
+            const fechaRegistrada = act.registroDias[numeroDia];
+            const confirmar = confirm(`El Día ${numeroDia} fue marcado el:\n${fechaRegistrada}\n\n¿Estás seguro de que deseas desmarcar este día?`);
+
+            if (confirmar) {
+                delete act.registroDias[numeroDia];
             } else {
-                const tareas = act.tareas || [];
-                const completadas = tareas.filter(t => t.completada).length;
-                const totalTareas = tareas.length;
-                const pct = totalTareas > 0 ? Math.round((completadas / totalTareas) * 100) : 0;
-
-                let HTMLTareas = '';
-                tareas.forEach((t, tIndex) => {
-                    HTMLTareas += `
-                        <div class="flex items-center justify-between p-2 rounded-lg bg-white/5 hover:bg-white/10 transition text-xs">
-                            <label class="flex items-center gap-2.5 cursor-pointer flex-1">
-                                <input type="checkbox" ${t.completada ? 'checked' : ''} onchange="toggleTarea(${actIndex}, ${tIndex})" class="accent-amber-500 w-4 h-4 rounded">
-                                <span class="${t.completada ? 'line-through text-white/40' : 'text-white'}">${t.texto}</span>
-                            </label>
-                            <button onclick="eliminarTarea(${actIndex}, ${tIndex})" class="text-white/30 hover:text-red-400">
-                                <span class="material-symbols-outlined text-sm">close</span>
-                            </button>
-                        </div>
-                    `;
-                });
-
-                card.innerHTML = `
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-blue-500/20 text-blue-300">
-                                Proyecto
-                            </span>
-                            <h4 class="text-lg font-bold text-white mt-2">${act.nombre}</h4>
-                            <p class="text-xs text-white/50 mt-0.5">${act.notas || 'Sin notas.'}</p>
-                        </div>
-                        
-                        <div class="flex items-center gap-2">
-                            ${act.linkLive ? `<a href="${act.linkLive}" target="_blank" class="p-2 rounded-xl bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 text-xs font-bold flex items-center gap-1"><span class="material-symbols-outlined text-sm">launch</span> Live</a>` : ''}
-                            ${act.linkRepo ? `<a href="${act.linkRepo}" target="_blank" class="p-2 rounded-xl bg-white/10 text-white hover:bg-white/20 text-xs font-bold flex items-center gap-1"><span class="material-symbols-outlined text-sm">code</span> Repo</a>` : ''}
-                        </div>
-                    </div>
-
-                    <div>
-                        <div class="flex justify-between text-xs text-white/70 mb-1">
-                            <span>Avance Automático: ${completadas}/${totalTareas} Tareas</span>
-                            <span class="font-bold text-blue-400">${pct}%</span>
-                        </div>
-                        <div class="w-full bg-white/10 h-2 rounded-full overflow-hidden">
-                            <div class="bg-blue-500 h-full transition-all duration-300" style="width: ${pct}%"></div>
-                        </div>
-                    </div>
-
-                    <div class="pt-2 border-t border-white/5">
-                        <span class="text-[11px] font-bold uppercase text-white/60 tracking-wider">Tareas Críticas & Especificaciones</span>
-                        
-                        <div class="space-y-1.5 mt-2 max-h-40 overflow-y-auto">
-                            ${HTMLTareas || '<p class="text-xs text-white/30 italic">No hay tareas agregadas aún.</p>'}
-                        </div>
-
-                        <div class="flex gap-2 mt-3">
-                            <input type="text" id="nueva-tarea-${actIndex}" placeholder="Nueva tarea o hito..." class="flex-1 bg-[#121212] border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-primary">
-                            <button type="button" onclick="agregarTarea(${actIndex})" class="px-4 py-1.5 bg-primary/20 hover:bg-primary/30 text-amber-300 border border-primary/30 text-xs font-bold rounded-xl transition">
-                                Agregar
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="flex justify-end pt-2 border-t border-white/5">
-                        <button onclick="eliminarActividad(${actIndex})" class="text-xs text-red-400/80 hover:text-red-400 font-semibold">
-                            Eliminar Proyecto
-                        </button>
-                    </div>
-                `;
+                return;
             }
+        } else {
+            act.registroDias[numeroDia] = new Date().toLocaleString('es-MX', {
+                dateStyle: 'medium',
+                timeStyle: 'short'
+            });
+        }
 
-            contenedor.appendChild(card);
-        });
-    };
+        act.diasCompletados = Object.keys(act.registroDias).length;
 
-    window.renderActividades();
-
-    const form = document.getElementById('form-rituales');
-    if (form) {
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-
-            const inputNombre = document.getElementById('input-nombre-act');
-            const inputFecha = document.getElementById('input-fecha-act');
-            const inputNotas = document.getElementById('input-notas-act');
-            const inputDuracion = document.getElementById('input-duracion');
-            const inputLinkLive = document.getElementById('input-link-live');
-            const inputLinkRepo = document.getElementById('input-link-repo');
-
-            const nombreVal = inputNombre ? inputNombre.value.trim() : '';
-            if (!nombreVal) return alert('Por favor ingresa un nombre.');
-
-            const esRitual = selectTipoAct ? selectTipoAct.value === 'ritual' : false;
-
-            const actividades = obtenerDatosActividades();
-            const nuevaActividad = {
-                id: Date.now().toString(),
-                tipo: esRitual ? 'ritual' : 'proyecto',
-                nombre: nombreVal,
-                fecha: (inputFecha && inputFecha.value) ? inputFecha.value : obtenerFechaHoy(),
-                notas: inputNotas ? inputNotas.value.trim() : '',
-            };
-
-            if (esRitual) {
-                nuevaActividad.duracion = parseInt(inputDuracion ? inputDuracion.value : 7) || 7;
-                nuevaActividad.diasCompletados = 0;
-            } else {
-                nuevaActividad.linkLive = inputLinkLive ? inputLinkLive.value.trim() : '';
-                nuevaActividad.linkRepo = inputLinkRepo ? inputLinkRepo.value.trim() : '';
-                nuevaActividad.tareas = [];
-            }
-
-            actividades.unshift(nuevaActividad);
-            guardarDatosActividades(actividades);
-
-            inputNombre.value = '';
-            if (inputNotas) inputNotas.value = '';
-            if (inputLinkLive) inputLinkLive.value = '';
-            if (inputLinkRepo) inputLinkRepo.value = '';
-
-            window.renderActividades();
-        });
+        guardarDatosActividades(actividades);
+        renderizarActividades();
     }
 }
 
+function renderizarActividades() {
+    const actividades = obtenerDatosActividades();
+    const elLista = document.getElementById('actividades-lista');
+
+    if (!elLista) return;
+
+    if (actividades.length === 0) {
+        elLista.innerHTML = `
+            <div class="p-8 rounded-2xl bg-[#1e1e1e] border border-white/5 text-center flex flex-col items-center justify-center">
+                <span class="material-symbols-outlined text-3xl text-on-surface-variant/30 mb-2">auto_awesome</span>
+                <p class="text-sm text-on-surface-variant/50">No hay proyectos ni rituales activos registrados.</p>
+            </div>`;
+        return;
+    }
+
+    elLista.innerHTML = '';
+
+    actividades.forEach(act => {
+        const tarjeta = document.createElement('div');
+        tarjeta.className = 'p-6 rounded-2xl bg-[#1e1e1e] border border-white/5 shadow-xl space-y-4';
+        const esRitual = act.tipo === 'ritual';
+
+        let contenidoEspecifico = '';
+
+        if (esRitual) {
+            const duracion = act.duracion || 7;
+            const registroDias = act.registroDias || {};
+            const completadosCount = Object.keys(registroDias).length;
+
+            let cuadritosHTML = '<div class="grid grid-cols-7 gap-2 mt-3">';
+            for (let i = 1; i <= duracion; i++) {
+                const estaCompletado = !!registroDias[i];
+                const infoHora = estaCompletado ? `Completado el: ${registroDias[i]}` : `Día ${i}`;
+
+                cuadritosHTML += `
+                    <button 
+                        onclick="toggleDiaRitual(${act.id}, ${i})" 
+                        title="${infoHora}"
+                        class="h-10 rounded-xl font-bold text-xs flex flex-col items-center justify-center transition-all duration-200 border ${
+                            estaCompletado 
+                            ? 'bg-amber-500 text-black border-amber-400 shadow-md shadow-amber-500/10 scale-95' 
+                            : 'bg-[#121212] text-white/50 border-white/10 hover:border-amber-500/50 hover:text-white'
+                        }">
+                        <span>${i}</span>
+                    </button>
+                `;
+            }
+            cuadritosHTML += '</div>';
+
+            contenidoEspecifico = `
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="text-white/70 font-medium">Progreso: <b class="text-amber-400">${completadosCount}</b> de <b>${duracion}</b> días</span>
+                        <span class="text-[10px] text-amber-300/60 uppercase font-bold tracking-wider">Toca el día para marcar</span>
+                    </div>
+                    ${cuadritosHTML}
+                </div>
+            `;
+        } else {
+            const totalTareas = act.tareas ? act.tareas.length : 0;
+            const completadas = act.tareas ? act.tareas.filter(t => t.completada).length : 0;
+            const avance = totalTareas > 0 ? Math.round((completadas / totalTareas) * 100) : 0;
+
+            let tareasHTML = (act.tareas || []).map((t, idx) => `
+                <div class="flex items-center justify-between gap-2 text-xs py-1.5 border-b border-white/5">
+                    <label class="flex items-center gap-2 cursor-pointer text-white/80 ${t.completada ? 'line-through text-white/40' : ''}">
+                        <input type="checkbox" ${t.completada ? 'checked' : ''} onchange="toggleTarea(${act.id}, ${idx})" class="rounded border-white/20 text-primary focus:ring-0">
+                        <span>${t.texto}</span>
+                    </label>
+                    <button onclick="eliminarTarea(${act.id}, ${idx})" class="text-white/30 hover:text-red-400 transition">
+                        <span class="material-symbols-outlined text-sm">close</span>
+                    </button>
+                </div>
+            `).join('');
+
+            contenidoEspecifico = `
+                <div class="space-y-3">
+                    <div class="flex gap-3 text-xs">
+                        ${act.linkLive ? `<a href="${act.linkLive}" target="_blank" class="text-primary hover:underline flex items-center gap-1"><span class="material-symbols-outlined text-sm">open_in_new</span> Ver Live</a>` : ''}
+                        ${act.linkRepo ? `<a href="${act.linkRepo}" target="_blank" class="text-blue-400 hover:underline flex items-center gap-1"><span class="material-symbols-outlined text-sm">code</span> Repositorio</a>` : ''}
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <div class="flex justify-between text-xs text-white/70">
+                            <span>Tareas (${completadas}/${totalTareas})</span>
+                            <span class="font-bold text-amber-400">${avance}%</span>
+                        </div>
+                        <div class="w-full bg-white/10 h-2 rounded-full overflow-hidden">
+                            <div class="bg-blue-500 h-full transition-all duration-300" style="width: ${avance}%"></div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-1 pt-1">
+                        ${tareasHTML}
+                    </div>
+
+                    <form onsubmit="agregarTarea(event, ${act.id})" class="flex gap-2 pt-2">
+                        <input type="text" placeholder="Nueva tarea..." class="input-tarea flex-1 bg-[#121212] border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-primary">
+                        <button type="submit" class="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition">Añadir</button>
+                    </form>
+                </div>
+            `;
+        }
+
+        tarjeta.innerHTML = `
+            <div class="flex items-start justify-between">
+                <div>
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${esRitual ? 'bg-amber-500/20 text-amber-300' : 'bg-blue-500/20 text-blue-300'}">
+                            ${esRitual ? 'Ritual' : 'Proyecto'}
+                        </span>
+                        <span class="text-xs text-white/40">${act.fecha}</span>
+                    </div>
+                    <h4 class="text-base font-bold text-white uppercase tracking-wide">${act.nombre}</h4>
+                    ${act.notas ? `<p class="text-xs text-on-surface-variant/70 mt-1">${act.notas}</p>` : ''}
+                </div>
+                <button onclick="eliminarActividad(${act.id})" class="text-on-surface-variant/40 hover:text-red-400 transition">
+                    <span class="material-symbols-outlined text-lg">delete</span>
+                </button>
+            </div>
+            ${contenidoEspecifico}
+        `;
+
+        elLista.appendChild(tarjeta);
+    });
+}
+
+function agregarTarea(e, id) {
+    e.preventDefault();
+    const input = e.target.querySelector('.input-tarea');
+    const texto = input.value.trim();
+    if (!texto) return;
+
+    const actividades = obtenerDatosActividades();
+    const act = actividades.find(a => a.id === id);
+    if (act) {
+        if (!act.tareas) act.tareas = [];
+        act.tareas.push({ texto, completada: false });
+        guardarDatosActividades(actividades);
+        renderizarActividades();
+    }
+}
+
+function toggleTarea(actId, tareaIdx) {
+    const actividades = obtenerDatosActividades();
+    const act = actividades.find(a => a.id === actId);
+    if (act && act.tareas[tareaIdx]) {
+        act.tareas[tareaIdx].completada = !act.tareas[tareaIdx].completada;
+        guardarDatosActividades(actividades);
+        renderizarActividades();
+    }
+}
+
+function eliminarTarea(actId, tareaIdx) {
+    const actividades = obtenerDatosActividades();
+    const act = actividades.find(a => a.id === actId);
+    if (act && act.tareas) {
+        act.tareas.splice(tareaIdx, 1);
+        guardarDatosActividades(actividades);
+        renderizarActividades();
+    }
+}
+
+function eliminarActividad(id) {
+    let actividades = obtenerDatosActividades();
+    actividades = actividades.filter(a => a.id !== id);
+    guardarDatosActividades(actividades);
+    renderizarActividades();
+}
+
 // ==========================================
-// DETECCIÓN DE PÁGINA Y EJECUCIÓN
+// INICIALIZACIÓN DE LA APLICACIÓN
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
-    const ruta = window.location.pathname;
-
-    if (ruta.includes('finanzas.html')) {
-        cargarVistaFinanzas();
-    } else if (ruta.includes('rituales.html')) {
-        cargarVistaRituales();
-    } else {
-        cargarDashboard();
-    }
+    cargarDashboard();
+    inicializarFinanzas();
+    inicializarRituales();
 });
