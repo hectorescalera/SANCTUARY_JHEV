@@ -1,8 +1,12 @@
+const SUPABASE_URL = 'https://pgcgcyilqgkzdpzpunjb.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_t3V8gkAZREY805mqv7n3PQ_0fZA8xyR';
+
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 // ==========================================
 // CONFIGURACIÓN GLOBAL Y UTILIDADES
 // ==========================================
 const STORAGE_KEYS = {
-    FINANZAS: 'sanctuary_finanzas_v2',
     ACTIVIDADES: 'sanctuary_actividades_v2'
 };
 
@@ -23,17 +27,57 @@ function obtenerFechaHoy() {
 let graficoInstancia = null;
 
 // ==========================================
-// MANEJO DE LOCALSTORAGE
+// MANEJO DE SUPABASE (FINANZAS)
 // ==========================================
-function obtenerDatosFinanzas() {
-    const data = localStorage.getItem(STORAGE_KEYS.FINANZAS);
-    return data ? JSON.parse(data) : { ingresos: 0, gastos: 0, totalAcumulado: 0, movimientos: [] };
+async function obtenerDatosFinanzas() {
+    const { data, error } = await supabase
+        .from('finanzas')
+        .select('*')
+        .order('fecha', { ascending: false });
+
+    if (error) {
+        console.error('Error al obtener finanzas de Supabase:', error);
+        return [];
+    }
+
+    return data || [];
 }
 
-function guardarDatosFinanzas(data) {
-    localStorage.setItem(STORAGE_KEYS.FINANZAS, JSON.stringify(data));
+async function guardarRegistroFinanzas(concepto, monto, categoria, tipo, fecha) {
+    const { data, error } = await supabase
+        .from('finanzas')
+        .insert([
+            { concepto, monto: parseFloat(monto), categoria, tipo, fecha }
+        ])
+        .select();
+
+    if (error) {
+        console.error('Error al guardar en Supabase:', error);
+        alert('Ocurrió un error al guardar el registro.');
+        return null;
+    }
+
+    return data;
 }
 
+async function eliminarRegistroFinanzas(id) {
+    const { error } = await supabase
+        .from('finanzas')
+        .delete()
+        .eq('id', id);
+
+    if (error) {
+        console.error('Error al eliminar en Supabase:', error);
+        alert('Ocurrió un error al eliminar el registro.');
+        return false;
+    }
+
+    return true;
+}
+
+// ==========================================
+// MANEJO DE LOCALSTORAGE (ACTIVIDADES)
+// ==========================================
 function obtenerDatosActividades() {
     const data = localStorage.getItem(STORAGE_KEYS.ACTIVIDADES);
     return data ? JSON.parse(data) : [];
@@ -46,34 +90,25 @@ function guardarDatosActividades(data) {
 // ==========================================
 // 1. VISTA: DASHBOARD (index.html) - SOLO LECTURA
 // ==========================================
-function cargarDashboard() {
-    const finanzas = obtenerDatosFinanzas();
+async function cargarDashboard() {
+    const movimientos = await obtenerDatosFinanzas();
     const actividades = obtenerDatosActividades();
 
-    // 1. Obtener balance desde totalAcumulado o calcularlo directamente desde ingresos - gastos
-    let balanceGlobalReal = 0;
+    let totalIngresos = 0;
+    let totalGastos = 0;
 
-    if (typeof finanzas.totalAcumulado !== 'undefined') {
-        balanceGlobalReal = Number(finanzas.totalAcumulado);
-    } else if (typeof finanzas.ingresos !== 'undefined' && typeof finanzas.gastos !== 'undefined') {
-        balanceGlobalReal = Number(finanzas.ingresos) - Number(finanzas.gastos);
-    } else if (finanzas.movimientos && Array.isArray(finanzas.movimientos)) {
-        let totalIngresos = 0;
-        let totalGastos = 0;
-        finanzas.movimientos.forEach(m => {
-            if (m.tipo === 'ingreso') totalIngresos += Number(m.monto) || 0;
-            else totalGastos += Number(m.monto) || 0;
-        });
-        balanceGlobalReal = totalIngresos - totalGastos;
-    }
+    movimientos.forEach(m => {
+        if (m.tipo === 'ingreso') totalIngresos += Number(m.monto) || 0;
+        else totalGastos += Number(m.monto) || 0;
+    });
 
-    // Busca los posibles IDs con los que esté maquetado el monto en index.html
+    const balanceGlobalReal = totalIngresos - totalGastos;
+
     const elMontoAcumulado = document.getElementById('monto-acumulado') || document.getElementById('total-acumulado');
     if (elMontoAcumulado) {
         elMontoAcumulado.textContent = formatoMoneda.format(balanceGlobalReal);
     }
 
-    // 2. Tarjetas Informativas de Avance
     const contenedorResumen = document.querySelector('#resumen-actividades');
 
     if (contenedorResumen) {
@@ -134,7 +169,7 @@ function cargarDashboard() {
 // ==========================================
 // 2. VISTA: FINANZAS (finanzas.html)
 // ==========================================
-function inicializarFinanzas() {
+async function inicializarFinanzas() {
     const formFinanzas = document.getElementById('form-finanzas');
     const selectTipo = document.getElementById('select-tipo');
     const selectCategoria = document.getElementById('select-categoria');
@@ -167,7 +202,7 @@ function inicializarFinanzas() {
         });
     }
 
-    formFinanzas.addEventListener('submit', (e) => {
+    formFinanzas.addEventListener('submit', async (e) => {
         e.preventDefault();
         const tipo = selectTipo.value;
         const concepto = document.getElementById('input-concepto').value.trim();
@@ -177,59 +212,36 @@ function inicializarFinanzas() {
 
         if (!concepto || isNaN(monto) || monto <= 0) return;
 
-        const finanzas = obtenerDatosFinanzas();
-        const nuevoMovimiento = {
-            id: Date.now(),
-            tipo,
-            concepto,
-            monto,
-            categoria,
-            fecha
-        };
+        const resultado = await guardarRegistroFinanzas(concepto, monto, categoria, tipo, fecha);
 
-        if (!finanzas.movimientos) finanzas.movimientos = [];
-        finanzas.movimientos.unshift(nuevoMovimiento);
-
-        // Recalcular acumulados globales
-        let ing = 0;
-        let gas = 0;
-        finanzas.movimientos.forEach(m => {
-            if (m.tipo === 'ingreso') ing += Number(m.monto);
-            else gas += Number(m.monto);
-        });
-        finanzas.ingresos = ing;
-        finanzas.gastos = gas;
-        finanzas.totalAcumulado = ing - gas;
-
-        guardarDatosFinanzas(finanzas);
-        formFinanzas.reset();
-        if (inputFecha) inputFecha.value = obtenerFechaHoy();
-        actualizarCategorias();
-        poblarOpcionesMeses();
-        renderizarFinanzas();
+        if (resultado) {
+            formFinanzas.reset();
+            if (inputFecha) inputFecha.value = obtenerFechaHoy();
+            actualizarCategorias();
+            await poblarOpcionesMeses();
+            await renderizarFinanzas();
+        }
     });
 
-    poblarOpcionesMeses();
-    renderizarFinanzas();
+    await poblarOpcionesMeses();
+    await renderizarFinanzas();
 }
 
-function poblarOpcionesMeses() {
+async function poblarOpcionesMeses() {
     const selectMesFiltro = document.getElementById('select-mes-filtro');
     if (!selectMesFiltro) return;
 
-    const finanzas = obtenerDatosFinanzas();
+    const movimientos = await obtenerDatosFinanzas();
     const mesesSet = new Set();
 
     const mesActual = obtenerFechaHoy().slice(0, 7);
     mesesSet.add(mesActual);
 
-    if (finanzas.movimientos) {
-        finanzas.movimientos.forEach(m => {
-            if (m.fecha) {
-                mesesSet.add(m.fecha.slice(0, 7));
-            }
-        });
-    }
+    movimientos.forEach(m => {
+        if (m.fecha) {
+            mesesSet.add(m.fecha.slice(0, 7));
+        }
+    });
 
     const mesesOrdenados = Array.from(mesesSet).sort().reverse();
     const valorSeleccionado = selectMesFiltro.value || mesActual;
@@ -245,12 +257,11 @@ function poblarOpcionesMeses() {
     selectMesFiltro.value = valorSeleccionado;
 }
 
-function renderizarFinanzas(filtroMes = null) {
-    const finanzas = obtenerDatosFinanzas();
+async function renderizarFinanzas(filtroMes = null) {
+    const movimientos = await obtenerDatosFinanzas();
     const selectMesFiltro = document.getElementById('select-mes-filtro');
 
     const mesActivo = filtroMes || (selectMesFiltro ? selectMesFiltro.value : 'todos');
-    const movimientos = finanzas.movimientos || [];
 
     const movimientosFiltrados = movimientos.filter(m => {
         if (!mesActivo || mesActivo === 'todos') return true;
@@ -298,7 +309,7 @@ function renderizarFinanzas(filtroMes = null) {
                         <span class="text-sm font-black ${esIngreso ? 'text-emerald-400' : 'text-red-400'}">
                             ${esIngreso ? '+' : '-'}${formatoMoneda.format(mov.monto)}
                         </span>
-                        <button onclick="eliminarMovimiento(${mov.id})" class="text-on-surface-variant/40 hover:text-red-400 transition">
+                        <button onclick="eliminarMovimiento('${mov.id}')" class="text-on-surface-variant/40 hover:text-red-400 transition">
                             <span class="material-symbols-outlined text-lg">delete</span>
                         </button>
                     </div>
@@ -351,25 +362,12 @@ function renderizarGrafico(ingresos, gastos) {
     });
 }
 
-function eliminarMovimiento(id) {
-    const finanzas = obtenerDatosFinanzas();
-    if (!finanzas.movimientos) return;
-
-    finanzas.movimientos = finanzas.movimientos.filter(m => m.id !== id);
-
-    let ing = 0;
-    let gas = 0;
-    finanzas.movimientos.forEach(m => {
-        if (m.tipo === 'ingreso') ing += Number(m.monto);
-        else gas += Number(m.monto);
-    });
-    finanzas.ingresos = ing;
-    finanzas.gastos = gas;
-    finanzas.totalAcumulado = ing - gas;
-
-    guardarDatosFinanzas(finanzas);
-    poblarOpcionesMeses();
-    renderizarFinanzas();
+async function eliminarMovimiento(id) {
+    const exito = await eliminarRegistroFinanzas(id);
+    if (exito) {
+        await poblarOpcionesMeses();
+        await renderizarFinanzas();
+    }
 }
 
 // ==========================================
@@ -641,8 +639,8 @@ function eliminarActividad(id) {
 // ==========================================
 // INICIALIZACIÓN DE LA APLICACIÓN
 // ==========================================
-document.addEventListener('DOMContentLoaded', () => {
-    cargarDashboard();
-    inicializarFinanzas();
+document.addEventListener('DOMContentLoaded', async () => {
+    await cargarDashboard();
+    await inicializarFinanzas();
     inicializarRituales();
 });
