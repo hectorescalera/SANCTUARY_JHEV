@@ -11,7 +11,7 @@ const STORAGE_KEYS = {
 };
 
 const CATEGORIAS_DEFAULT = {
-    gasto: ['Misas / Eventos LeGarbo', 'Nomina', 'Clases / Asesorias', 'Otros / Extras', 'Desarrollo Web / Proyectos'],
+    gasto: ['Servicios', 'Gasolina', 'Alimentación', 'Gaby', 'Héctor', 'David', 'Personal', 'Otros'],
     ingreso: ['Misas / Eventos LeGarbo', 'Nomina', 'Clases / Asesorias', 'Otros / Extras', 'Desarrollo Web / Proyectos']
 };
 
