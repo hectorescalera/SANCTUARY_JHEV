@@ -11,8 +11,8 @@ const STORAGE_KEYS = {
 };
 
 const CATEGORIAS_DEFAULT = {
-    gasto: ['Servicios','Gasolina', 'Alimentación', 'Gaby','Héctor', 'David','Personal',  'Otros'],
-    ingreso: ['Eventos / Trío Le Garbo', 'Desarrollo Web', 'Clases / Asesorías', 'Ventas', 'Otros']
+    gasto: ['Misas / Eventos LeGarbo', 'Nomina', 'Clases / Asesorias', 'Otros / Extras', 'Desarrollo Web / Proyectos'],
+    ingreso: ['Misas / Eventos LeGarbo', 'Nomina', 'Clases / Asesorias', 'Otros / Extras', 'Desarrollo Web / Proyectos']
 };
 
 const formatoMoneda = new Intl.NumberFormat('es-MX', {
