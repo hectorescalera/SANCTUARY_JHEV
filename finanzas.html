@@ -4,12 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sanctuary JHEV - Finanzas</title>
+
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Material Symbols -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
     <!-- Chart.js para Gráficos Visuales -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <script>
         tailwind.config = {
             theme: {
@@ -31,56 +35,30 @@
 </head>
 <body class="h-full bg-[#121212] text-on-surface font-sans antialiased flex overflow-hidden">
 
-    <!-- BARRA LATERAL (SIDEBAR) -->
- <!-- MENÚ LATERAL (Oculto en celulares, visible en pantallas medianas/computadoras) -->
-<aside class="-translate-x-full md:translate-x-0 fixed md:static top-0 left-0 z-50 transition-transform duration-300 w-64 h-screen bg-[#1e1e1e] ...">
+    <!-- MENÚ LATERAL DESKTOP -->
+    <aside class="-translate-x-full md:translate-x-0 fixed md:static top-0 left-0 z-50 transition-transform duration-300 w-64 h-screen bg-[#1e1e1e] p-6 flex flex-col justify-between border-r border-white/5 shrink-0">
+        <div class="space-y-8">
+            <!-- Logo y Título -->
+            <div>
+                <h1 class="text-xl font-black text-amber-500 uppercase tracking-wider">Sanctuary JHEV</h1>
+                <p class="text-xs text-white/40 mt-1">Gestor Personal & Bitácora</p>
+            </div>
 
-<!-- Botón flotante para abrir/cerrar menú en celular -->
-<button onclick="document.querySelector('aside').classList.toggle('-translate-x-full')" 
-        class="md:hidden fixed top-4 left-4 z-[60] bg-amber-500 text-black p-2 rounded-xl shadow-lg flex items-center justify-center">
-    <span class="material-symbols-outlined">menu</span>
-</button>
-
-    <div class="space-y-8">
-        <!-- Logo y Título -->
-        <div>
-            <h1 class="text-xl font-black text-amber-500 uppercase tracking-wider">Sanctuary JHEV</h1>
-            <p class="text-xs text-white/40 mt-1">Gestor Personal & Bitácora</p>
-        </div>
-
-        <!-- Enlaces de Navegación Desktop -->
-        <nav class="space-y-2">
-            <a href="index.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-white/70 hover:bg-white/5 hover:text-white transition">
-                <span class="material-symbols-outlined">dashboard</span>
-                <span>Dashboard</span>
-            </a>
-            <a href="finanzas.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-white/70 hover:bg-white/5 hover:text-white transition">
-                <span class="material-symbols-outlined">account_balance_wallet</span>
-                <span>Finanzas</span>
-            </a>
-            <a href="rituales.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-white/70 hover:bg-white/5 hover:text-white transition">
-                <span class="material-symbols-outlined">auto_awesome</span>
-                <span>Rituales & Proyectos</span>
-            </a>
-        </nav>
-    </div>
-</aside>
-
-<!-- BARRA DE NAVEGACIÓN INFERIOR (Solo visible en celulares) -->
-<nav class="md:hidden fixed bottom-0 left-0 right-0 bg-[#1e1e1e] border-t border-white/10 flex justify-around items-center py-3 z-50 shadow-lg">
-    <a href="index.html" class="flex flex-col items-center text-white/60 hover:text-amber-500 text-xs">
-        <span class="material-symbols-outlined">dashboard</span>
-        <span class="text-[10px] mt-0.5">Inicio</span>
-    </a>
-    <a href="finanzas.html" class="flex flex-col items-center text-white/60 hover:text-amber-500 text-xs">
-        <span class="material-symbols-outlined">account_balance_wallet</span>
-        <span class="text-[10px]">Finanzas</span>
-    </a>
-    <a href="rituales.html" class="flex flex-col items-center text-white/60 hover:text-amber-500 text-xs">
-        <span class="material-symbols-outlined">auto_awesome</span>
-        <span class="text-[10px]">Proyectos</span>
-    </a>
-</nav>
+            <!-- Enlaces de Navegación Desktop -->
+            <nav class="space-y-2">
+                <a href="index.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-white/70 hover:bg-white/5 hover:text-white transition">
+                    <span class="material-symbols-outlined">dashboard</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="finanzas.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-amber-500 bg-amber-500/10 border border-amber-500/20 transition">
+                    <span class="material-symbols-outlined">account_balance_wallet</span>
+                    <span>Finanzas</span>
+                </a>
+                <a href="rituales.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-white/70 hover:bg-white/5 hover:text-white transition">
+                    <span class="material-symbols-outlined">auto_awesome</span>
+                    <span>Rituales & Proyectos</span>
+                </a>
+            </nav>
         </div>
 
         <!-- FOOTER SIDEBAR / PERFIL -->
@@ -95,11 +73,33 @@
         </div>
     </aside>
 
+    <!-- BOTÓN FLOTANTE PARA MENÚ EN MÓVIL -->
+    <button onclick="document.querySelector('aside').classList.toggle('-translate-x-full')" 
+            class="md:hidden fixed top-4 left-4 z-[60] bg-amber-500 text-black p-2 rounded-xl shadow-lg flex items-center justify-center">
+        <span class="material-symbols-outlined">menu</span>
+    </button>
+
+    <!-- BARRA DE NAVEGACIÓN INFERIOR (Solo visible en celulares) -->
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-[#1e1e1e] border-t border-white/10 flex justify-around items-center py-3 z-50 shadow-lg">
+        <a href="index.html" class="flex flex-col items-center text-white/60 hover:text-amber-500 text-xs">
+            <span class="material-symbols-outlined">dashboard</span>
+            <span class="text-[10px] mt-0.5">Inicio</span>
+        </a>
+        <a href="finanzas.html" class="flex flex-col items-center text-amber-500 text-xs">
+            <span class="material-symbols-outlined">account_balance_wallet</span>
+            <span class="text-[10px]">Finanzas</span>
+        </a>
+        <a href="rituales.html" class="flex flex-col items-center text-white/60 hover:text-amber-500 text-xs">
+            <span class="material-symbols-outlined">auto_awesome</span>
+            <span class="text-[10px]">Proyectos</span>
+        </a>
+    </nav>
+
     <!-- CONTENIDO PRINCIPAL -->
-    <main class="flex-1 overflow-y-auto h-screen p-8 bg-[#121212]">
+    <main class="flex-1 overflow-y-auto h-screen p-4 md:p-8 bg-[#121212] pb-24 md:pb-8">
         
         <!-- HEADER PRINCIPAL -->
-        <header class="flex items-center justify-between mb-8 pb-4 border-b border-white/5">
+        <header class="flex items-center justify-between mb-8 pb-4 border-b border-white/5 pt-12 md:pt-0">
             <div class="flex items-center gap-3">
                 <span class="material-symbols-outlined text-primary text-2xl">payments</span>
                 <h2 class="text-xl font-bold text-white tracking-wide">Gestión Financiera</h2>
@@ -168,7 +168,7 @@
                     <div>
                         <label class="block text-xs font-medium text-on-surface-variant mb-1">Categoría</label>
                         <select id="select-categoria" class="w-full bg-[#121212] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-primary">
-                            <!-- Opciones cargadas dinámicamente desde app.js -->
+                            <!-- Carga dinámica -->
                         </select>
                     </div>
 
@@ -194,7 +194,7 @@
                         <div class="flex items-center gap-2">
                             <label for="select-mes-filtro" class="text-xs text-on-surface-variant">Filtrar Mes:</label>
                             <select id="select-mes-filtro" class="bg-[#121212] text-xs text-white border border-white/10 rounded-xl px-3 py-2 focus:outline-none focus:border-primary">
-                                <!-- Opciones de meses llenadas dinámicamente por app.js -->
+                                <!-- Carga dinámica -->
                             </select>
                         </div>
                     </div>
@@ -209,7 +209,7 @@
 
                     <!-- LISTA DE REGISTROS -->
                     <div id="historial-movimientos" class="space-y-3">
-                        <!-- Transacciones renderizadas dinámicamente por app.js -->
+                        <!-- Transacciones renderizadas dinámicamente -->
                     </div>
 
                 </div>

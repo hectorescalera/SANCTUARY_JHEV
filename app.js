@@ -1,7 +1,7 @@
 const SUPABASE_URL = 'https://pgcgcyilqgkzdpzpunjb.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_t3V8gkAZREY805mqv7n3PQ_0fZA8xyR';
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
 // ==========================================
 // CONFIGURACIÓN GLOBAL Y UTILIDADES
@@ -30,6 +30,7 @@ let graficoInstancia = null;
 // MANEJO DE SUPABASE (FINANZAS)
 // ==========================================
 async function obtenerDatosFinanzas() {
+    if (!supabase) return [];
     const { data, error } = await supabase
         .from('finanzas')
         .select('*')
@@ -44,6 +45,7 @@ async function obtenerDatosFinanzas() {
 }
 
 async function guardarRegistroFinanzas(concepto, monto, categoria, tipo, fecha) {
+    if (!supabase) return null;
     const { data, error } = await supabase
         .from('finanzas')
         .insert([
@@ -61,6 +63,7 @@ async function guardarRegistroFinanzas(concepto, monto, categoria, tipo, fecha) 
 }
 
 async function eliminarRegistroFinanzas(id) {
+    if (!supabase) return false;
     const { error } = await supabase
         .from('finanzas')
         .delete()
