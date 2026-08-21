@@ -108,6 +108,19 @@ function mapearActividadParaSupabase(actividad) {
     };
 }
 
+function actividadCompletada(actividad) {
+    if (actividad.tipo === 'ritual') {
+        const duracion = actividad.duracion || 7;
+        const diasCompletados = actividad.registroDias
+            ? Object.keys(actividad.registroDias).length
+            : (actividad.diasCompletados || 0);
+        return diasCompletados >= duracion;
+    }
+
+    const tareas = actividad.tareas || [];
+    return tareas.length > 0 && tareas.every(tarea => tarea.completada);
+}
+
 async function obtenerDatosActividades() {
     if (!supabaseClient) return [];
 
@@ -172,7 +185,7 @@ async function eliminarActividadDeSupabase(id) {
 // ==========================================
 async function cargarDashboard() {
     const movimientos = await obtenerDatosFinanzas();
-    const actividades = await obtenerDatosActividades();
+    const actividades = (await obtenerDatosActividades()).filter(actividad => !actividadCompletada(actividad));
 
     let totalIngresos = 0;
     let totalGastos = 0;
@@ -196,7 +209,7 @@ async function cargarDashboard() {
             contenedorResumen.innerHTML = `
                 <div class="col-span-full p-8 rounded-2xl bg-[#1e1e1e] border border-white/5 text-center flex flex-col items-center justify-center">
                     <span class="material-symbols-outlined text-3xl text-on-surface-variant/30 mb-2">event_notes</span>
-                    <p class="text-sm text-on-surface-variant/50">No hay proyectos ni rituales registrados en este momento.</p>
+                    <p class="text-sm text-on-surface-variant/50">No hay proyectos ni rituales activos en este momento.</p>
                 </div>`;
             return;
         }
@@ -550,21 +563,23 @@ async function toggleDiaRitual(id, numeroDia) {
 async function renderizarActividades() {
     const actividades = await obtenerDatosActividades();
     const elLista = document.getElementById('actividades-lista');
+    const elArchivadas = document.getElementById('actividades-archivadas');
 
     if (!elLista) return;
 
-    if (actividades.length === 0) {
+    const activas = actividades.filter(actividad => !actividadCompletada(actividad));
+    const archivadas = actividades.filter(actividad => actividadCompletada(actividad));
+
+    if (activas.length === 0) {
         elLista.innerHTML = `
             <div class="p-8 rounded-2xl bg-[#1e1e1e] border border-white/5 text-center flex flex-col items-center justify-center">
                 <span class="material-symbols-outlined text-3xl text-on-surface-variant/30 mb-2">auto_awesome</span>
                 <p class="text-sm text-on-surface-variant/50">No hay proyectos ni rituales activos registrados.</p>
             </div>`;
-        return;
-    }
+    } else {
+        elLista.innerHTML = '';
 
-    elLista.innerHTML = '';
-
-    actividades.forEach(act => {
+        activas.forEach(act => {
         const tarjeta = document.createElement('div');
         tarjeta.className = 'p-6 rounded-2xl bg-[#1e1e1e] border border-white/5 shadow-xl space-y-4';
         const esRitual = act.tipo === 'ritual';
@@ -670,8 +685,26 @@ async function renderizarActividades() {
             ${contenidoEspecifico}
         `;
 
-        elLista.appendChild(tarjeta);
-    });
+            elLista.appendChild(tarjeta);
+        });
+    }
+
+    if (elArchivadas) {
+        elArchivadas.innerHTML = archivadas.length === 0
+            ? '<p class="text-sm text-white/40">Todavía no hay actividades completadas.</p>'
+            : archivadas.map(act => `
+                <div class="p-4 rounded-xl bg-[#161616] border border-white/5 flex items-center justify-between gap-4">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${act.tipo === 'ritual' ? 'bg-amber-500/20 text-amber-300' : 'bg-blue-500/20 text-blue-300'}">${act.tipo === 'ritual' ? 'Ritual' : 'Proyecto'}</span>
+                            <span class="text-xs text-white/40">${act.fecha}</span>
+                        </div>
+                        <h4 class="text-sm font-bold text-white">${act.nombre}</h4>
+                    </div>
+                    <span class="material-symbols-outlined text-emerald-400" title="Completado">task_alt</span>
+                </div>
+            `).join('');
+    }
 }
 
 async function agregarTarea(e, id) {

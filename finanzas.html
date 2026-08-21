@@ -99,85 +99,85 @@
     <main class="flex-1 overflow-y-auto h-screen p-4 md:p-8 bg-[#121212] pb-24 md:pb-8">
         
         <!-- HEADER PRINCIPAL -->
-        <header class="flex items-center justify-between mb-8 pb-4 border-b border-white/5 pt-12 md:pt-0">
+        <header class="flex items-center justify-between mb-5 md:mb-8 pb-3 md:pb-4 border-b border-white/5 pt-12 md:pt-0">
             <div class="flex items-center gap-3">
-                <span class="material-symbols-outlined text-primary text-2xl">payments</span>
-                <h2 class="text-xl font-bold text-white tracking-wide">Gestión Financiera</h2>
+                <span class="material-symbols-outlined text-primary text-xl md:text-2xl">payments</span>
+                <h2 class="text-lg md:text-xl font-bold text-white tracking-wide">Finanzas</h2>
             </div>
         </header>
 
         <!-- TARJETAS DE RESUMEN SUPERIOR -->
-        <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="p-6 rounded-2xl bg-[#1e1e1e] border border-white/5 shadow-xl flex items-center justify-between">
+        <section class="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6 mb-5 md:mb-8">
+            <div class="col-span-2 md:col-span-1 order-first p-4 md:p-6 rounded-2xl bg-[#1e1e1e] border border-white/5 shadow-xl flex items-center justify-between">
                 <div>
                     <p class="text-xs font-bold text-emerald-400 tracking-wider uppercase mb-1">Ingresos</p>
-                    <p id="monto-ingresos" class="text-2xl font-black text-emerald-400">$0.00</p>
+                    <p id="monto-ingresos" class="text-xl md:text-2xl font-black text-emerald-400">$0.00</p>
                 </div>
-                <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
-                    <span class="material-symbols-outlined text-2xl">arrow_upward</span>
+                <div class="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-xl md:text-2xl">arrow_upward</span>
                 </div>
             </div>
 
-            <div class="p-6 rounded-2xl bg-[#1e1e1e] border border-white/5 shadow-xl flex items-center justify-between">
+            <div class="p-4 md:p-6 rounded-2xl bg-[#1e1e1e] border border-white/5 shadow-xl flex items-center justify-between">
                 <div>
                     <p class="text-xs font-bold text-red-400 tracking-wider uppercase mb-1">Gastos</p>
-                    <p id="monto-gastos" class="text-2xl font-black text-red-400">$0.00</p>
+                    <p id="monto-gastos" class="text-xl md:text-2xl font-black text-red-400">$0.00</p>
                 </div>
-                <div class="w-12 h-12 rounded-2xl bg-red-500/10 text-red-400 flex items-center justify-center">
-                    <span class="material-symbols-outlined text-2xl">arrow_downward</span>
+                <div class="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-red-500/10 text-red-400 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-xl md:text-2xl">arrow_downward</span>
                 </div>
             </div>
 
-            <div class="p-6 rounded-2xl bg-[#1e1e1e] border border-white/5 shadow-xl flex items-center justify-between">
+            <div class="p-4 md:p-6 rounded-2xl bg-[#1e1e1e] border border-white/5 shadow-xl flex items-center justify-between">
                 <div>
                     <p class="text-xs font-bold text-amber-400 tracking-wider uppercase mb-1">Neto</p>
-                    <p id="monto-neto" class="text-2xl font-black text-amber-400">$0.00</p>
+                    <p id="monto-neto" class="text-xl md:text-2xl font-black text-amber-400">$0.00</p>
                 </div>
-                <div class="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-400 flex items-center justify-center">
-                    <span class="material-symbols-outlined text-2xl">account_balance_wallet</span>
+                <div class="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-amber-500/10 text-amber-400 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-xl md:text-2xl">account_balance_wallet</span>
                 </div>
             </div>
         </section>
 
         <!-- GRID DE FORMULARIO E HISTORIAL CON GRÁFICO -->
-        <section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8">
             
             <!-- FORMULARIO DE REGISTRO -->
-            <div class="p-6 rounded-2xl bg-[#1e1e1e] border border-white/5 shadow-xl h-fit">
-                <h3 class="text-lg font-bold text-white mb-4">Nuevo Movimiento</h3>
+            <div class="p-4 md:p-6 rounded-2xl bg-[#1e1e1e] border border-white/5 shadow-xl h-fit">
+                <h3 class="text-base md:text-lg font-bold text-white mb-3 md:mb-4">Nuevo Movimiento</h3>
                 
-                <form id="form-finanzas" class="space-y-4">
+                <form id="form-finanzas" class="grid grid-cols-2 gap-3 md:block md:space-y-4">
                     <div>
                         <label class="block text-xs font-medium text-on-surface-variant mb-1">Tipo</label>
-                        <select id="select-tipo" class="w-full bg-[#121212] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-primary">
+                            <select id="select-tipo" class="w-full bg-[#121212] border border-white/10 rounded-xl px-3 md:px-4 py-2 md:py-2.5 text-sm text-white focus:outline-none focus:border-primary">
                             <option value="gasto">Gasto (-)</option>
                             <option value="ingreso">Ingreso (+)</option>
                         </select>
                     </div>
 
-                    <div>
+                    <div class="col-span-2">
                         <label class="block text-xs font-medium text-on-surface-variant mb-1">Concepto</label>
-                        <input type="text" id="input-concepto" placeholder="Ej. Pago Servicio, Honorarios" class="w-full bg-[#121212] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-primary" required>
+                        <input type="text" id="input-concepto" placeholder="Ej. Pago Servicio, Honorarios" class="w-full bg-[#121212] border border-white/10 rounded-xl px-3 md:px-4 py-2 md:py-2.5 text-sm text-white focus:outline-none focus:border-primary" required>
                     </div>
 
                     <div>
                         <label class="block text-xs font-medium text-on-surface-variant mb-1">Monto ($)</label>
-                        <input type="number" id="input-monto" step="0.01" placeholder="0.00" class="w-full bg-[#121212] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-primary" required>
+                        <input type="number" id="input-monto" step="0.01" placeholder="0.00" class="w-full bg-[#121212] border border-white/10 rounded-xl px-3 md:px-4 py-2 md:py-2.5 text-sm text-white focus:outline-none focus:border-primary" required>
                     </div>
 
                     <div>
                         <label class="block text-xs font-medium text-on-surface-variant mb-1">Categoría</label>
-                        <select id="select-categoria" class="w-full bg-[#121212] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-primary">
+                            <select id="select-categoria" class="w-full bg-[#121212] border border-white/10 rounded-xl px-3 md:px-4 py-2 md:py-2.5 text-sm text-white focus:outline-none focus:border-primary">
                             <!-- Carga dinámica -->
                         </select>
                     </div>
 
                     <div>
                         <label class="block text-xs font-medium text-on-surface-variant mb-1">Fecha</label>
-                        <input type="date" id="input-fecha" class="w-full bg-[#121212] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-primary">
+                        <input type="date" id="input-fecha" class="w-full bg-[#121212] border border-white/10 rounded-xl px-3 md:px-4 py-2 md:py-2.5 text-sm text-white focus:outline-none focus:border-primary">
                     </div>
 
-                    <button type="submit" class="w-full py-3 rounded-xl bg-primary hover:bg-amber-600 text-black font-bold text-sm tracking-wide transition shadow-lg mt-2">
+                    <button type="submit" class="w-full py-2.5 md:py-3 rounded-xl bg-primary hover:bg-amber-600 text-black font-bold text-sm tracking-wide transition shadow-lg mt-1 md:mt-2">
                         Guardar Movimiento
                     </button>
                 </form>

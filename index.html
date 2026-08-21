@@ -96,40 +96,40 @@
     <main class="flex-1 overflow-y-auto h-screen p-4 sm:p-8 pt-16 md:pt-8 pb-24 md:pb-8 bg-[#0d0d10] w-full">
         
         <!-- HEADER PRINCIPAL -->
-        <header class="flex items-center justify-between mb-8 pb-4 border-b border-white/5">
+        <header class="flex items-center justify-between mb-5 md:mb-8 pb-3 md:pb-4 border-b border-white/5">
             <div class="flex items-center gap-3 ml-12 md:ml-0">
-                <span class="material-symbols-outlined text-amber-400 text-2xl">grid_view</span>
-                <h2 class="text-xl font-extrabold text-white tracking-wide">Panel Principal</h2>
+                <span class="material-symbols-outlined text-amber-400 text-xl md:text-2xl">grid_view</span>
+                <h2 class="text-lg md:text-xl font-extrabold text-white tracking-wide">Dashboard</h2>
             </div>
-            <div class="text-xs font-semibold px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-gray-400 flex items-center gap-2">
+            <div class="text-[10px] sm:text-xs font-semibold px-2 sm:px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-gray-400 flex items-center gap-2">
                 <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span>Sistema Online</span>
+                <span class="hidden sm:inline">Sistema Online</span>
             </div>
         </header>
 
         <!-- SECCIÓN BIENVENIDA -->
-        <section class="mb-8">
-            <h1 class="text-2xl md:text-3xl font-black text-white tracking-tight">Bienvenido, Héctor</h1>
-            <p class="text-xs md:text-sm text-gray-400 mt-1">Vista consolidada de estado financiero, proyectos en desarrollo y bitácora activa.</p>
+        <section class="mb-5 md:mb-8">
+            <h1 class="text-xl md:text-3xl font-black text-white tracking-tight">Bienvenido, Héctor</h1>
+            <p class="text-xs md:text-sm text-gray-400 mt-1 max-w-2xl">Vista consolidada de estado financiero, proyectos en desarrollo y bitácora activa.</p>
         </section>
 
         <!-- GRID FINANCIERO DESTACADO -->
-        <section class="mb-10">
-            <div class="p-6 rounded-2xl bg-gradient-to-r from-[#16161a] via-[#1a1a20] to-[#16161a] border border-white/10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative overflow-hidden shadow-2xl">
+        <section class="mb-6 md:mb-10">
+            <div class="p-4 md:p-6 rounded-2xl bg-gradient-to-r from-[#16161a] via-[#1a1a20] to-[#16161a] border border-white/10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-6 relative overflow-hidden shadow-2xl">
                 <!-- Luz decorativa de fondo -->
                 <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-                <div class="flex items-center gap-5">
-                    <div class="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shrink-0">
-                        <span class="material-symbols-outlined text-3xl">account_balance_wallet</span>
+                <div class="flex items-center gap-3 md:gap-5">
+                    <div class="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shrink-0">
+                        <span class="material-symbols-outlined text-2xl md:text-3xl">account_balance_wallet</span>
                     </div>
                     <div>
                         <span class="text-[11px] font-bold uppercase tracking-widest text-amber-400/80">Balance Acumulado Total</span>
-                        <div id="monto-acumulado" class="text-3xl md:text-4xl font-black text-white mt-1 tracking-tight">$0.00</div>
+                        <div id="monto-acumulado" class="text-2xl md:text-4xl font-black text-white mt-1 tracking-tight">$0.00</div>
                     </div>
                 </div>
 
-                <a href="finanzas.html" class="w-full md:w-auto px-5 py-3 rounded-xl bg-white/5 hover:bg-amber-500/10 border border-white/10 hover:border-amber-500/30 text-xs font-bold text-white hover:text-amber-300 transition flex items-center justify-center gap-2 group shadow-lg">
+                <a href="finanzas.html" class="w-full md:w-auto px-4 md:px-5 py-2.5 md:py-3 rounded-xl bg-white/5 hover:bg-amber-500/10 border border-white/10 hover:border-amber-500/30 text-xs font-bold text-white hover:text-amber-300 transition flex items-center justify-center gap-2 group shadow-lg">
                     <span>Gestión de Finanzas</span>
                     <span class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
                 </a>
@@ -137,9 +137,9 @@
         </section>
 
         <!-- SECCIÓN ACTIVIDADES Y RITUALES ACTIVOS -->
-        <section class="mb-10">
-            <div class="flex justify-between items-center mb-5">
-                <h3 class="text-base md:text-lg font-bold text-white tracking-wide flex items-center gap-2">
+        <section class="mb-6 md:mb-10">
+            <div class="flex justify-between items-center mb-3 md:mb-5">
+                <h3 class="text-sm md:text-lg font-bold text-white tracking-wide flex items-center gap-2">
                     <span class="material-symbols-outlined text-amber-400 text-xl">bolt</span>
                     <span>Resumen de Actividades</span>
                 </h3>
