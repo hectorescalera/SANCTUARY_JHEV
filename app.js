@@ -11,7 +11,7 @@ const STORAGE_KEYS = {
 };
 
 const CATEGORIAS_DEFAULT = {
-    gasto: ['Servicios', 'Alimentación', 'Música & Equipo', 'Desarrollo & Herramientas', 'Personal', 'Gasolina', 'Otros'],
+    gasto: ['Servicios','Gasolina', 'Alimentación', 'Gaby','Héctor', 'David','Personal',  'Otros'],
     ingreso: ['Eventos / Trío Le Garbo', 'Desarrollo Web', 'Clases / Asesorías', 'Ventas', 'Otros']
 };
 
