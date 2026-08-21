@@ -1,7 +1,7 @@
 const SUPABASE_URL = 'https://pgcgcyilqgkzdpzpunjb.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_t3V8gkAZREY805mqv7n3PQ_0fZA8xyR';
 
-const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
 // ==========================================
 // CONFIGURACIÓN GLOBAL Y UTILIDADES
@@ -30,8 +30,8 @@ let graficoInstancia = null;
 // MANEJO DE SUPABASE (FINANZAS)
 // ==========================================
 async function obtenerDatosFinanzas() {
-    if (!supabase) return [];
-    const { data, error } = await supabase
+    if (!supabaseClient) return [];
+    const { data, error } = await supabaseClient
         .from('finanzas')
         .select('*')
         .order('fecha', { ascending: false });
@@ -45,8 +45,8 @@ async function obtenerDatosFinanzas() {
 }
 
 async function guardarRegistroFinanzas(concepto, monto, categoria, tipo, fecha) {
-    if (!supabase) return null;
-    const { data, error } = await supabase
+    if (!supabaseClient) return null;
+    const { data, error } = await supabaseClient
         .from('finanzas')
         .insert([
             { concepto, monto: parseFloat(monto), categoria, tipo, fecha }
@@ -63,8 +63,8 @@ async function guardarRegistroFinanzas(concepto, monto, categoria, tipo, fecha) 
 }
 
 async function eliminarRegistroFinanzas(id) {
-    if (!supabase) return false;
-    const { error } = await supabase
+    if (!supabaseClient) return false;
+    const { error } = await supabaseClient
         .from('finanzas')
         .delete()
         .eq('id', id);
@@ -79,15 +79,92 @@ async function eliminarRegistroFinanzas(id) {
 }
 
 // ==========================================
-// MANEJO DE LOCALSTORAGE (ACTIVIDADES)
+// MANEJO DE SUPABASE (ACTIVIDADES)
 // ==========================================
-function obtenerDatosActividades() {
-    const data = localStorage.getItem(STORAGE_KEYS.ACTIVIDADES);
-    return data ? JSON.parse(data) : [];
+function mapearActividadDesdeSupabase(actividad) {
+    return {
+        ...actividad,
+        registroDias: actividad.registro_dias || {},
+        diasCompletados: actividad.dias_completados || 0,
+        linkLive: actividad.link_live || '',
+        linkRepo: actividad.link_repo || '',
+        tareas: actividad.tareas || []
+    };
 }
 
-function guardarDatosActividades(data) {
-    localStorage.setItem(STORAGE_KEYS.ACTIVIDADES, JSON.stringify(data));
+function mapearActividadParaSupabase(actividad) {
+    return {
+        id: actividad.id,
+        tipo: actividad.tipo,
+        nombre: actividad.nombre,
+        fecha: actividad.fecha,
+        notas: actividad.notas || '',
+        duracion: actividad.duracion || null,
+        registro_dias: actividad.registroDias || {},
+        dias_completados: actividad.diasCompletados || 0,
+        link_live: actividad.linkLive || '',
+        link_repo: actividad.linkRepo || '',
+        tareas: actividad.tareas || []
+    };
+}
+
+async function obtenerDatosActividades() {
+    if (!supabaseClient) return [];
+
+    const { data, error } = await supabaseClient
+        .from('actividades')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Error al obtener actividades de Supabase:', error);
+        return [];
+    }
+
+    const actividades = (data || []).map(mapearActividadDesdeSupabase);
+    const datosLocales = localStorage.getItem(STORAGE_KEYS.ACTIVIDADES);
+
+    if (actividades.length === 0 && datosLocales) {
+        const actividadesLocales = JSON.parse(datosLocales);
+        const migracionExitosa = await guardarDatosActividades(actividadesLocales);
+        if (migracionExitosa) localStorage.removeItem(STORAGE_KEYS.ACTIVIDADES);
+        return migracionExitosa ? actividadesLocales : [];
+    }
+
+    return actividades;
+}
+
+async function guardarDatosActividades(data) {
+    if (!supabaseClient) return false;
+
+    const { error } = await supabaseClient
+        .from('actividades')
+        .upsert(data.map(mapearActividadParaSupabase));
+
+    if (error) {
+        console.error('Error al guardar actividades en Supabase:', error);
+        alert('Ocurrió un error al guardar la actividad. Verifica la configuración de Supabase.');
+        return false;
+    }
+
+    return true;
+}
+
+async function eliminarActividadDeSupabase(id) {
+    if (!supabaseClient) return false;
+
+    const { error } = await supabaseClient
+        .from('actividades')
+        .delete()
+        .eq('id', id);
+
+    if (error) {
+        console.error('Error al eliminar actividad de Supabase:', error);
+        alert('Ocurrió un error al eliminar la actividad.');
+        return false;
+    }
+
+    return true;
 }
 
 // ==========================================
@@ -95,7 +172,7 @@ function guardarDatosActividades(data) {
 // ==========================================
 async function cargarDashboard() {
     const movimientos = await obtenerDatosFinanzas();
-    const actividades = obtenerDatosActividades();
+    const actividades = await obtenerDatosActividades();
 
     let totalIngresos = 0;
     let totalGastos = 0;
@@ -399,7 +476,7 @@ function inicializarRituales() {
         }
     });
 
-    formRituales.addEventListener('submit', (e) => {
+    formRituales.addEventListener('submit', async (e) => {
         e.preventDefault();
         const tipo = selectTipoAct.value;
         const nombre = document.getElementById('input-nombre-act').value.trim();
@@ -408,7 +485,7 @@ function inicializarRituales() {
 
         if (!nombre) return;
 
-        const actividades = obtenerDatosActividades();
+        const actividades = await obtenerDatosActividades();
         const nuevaActividad = {
             id: Date.now(),
             tipo,
@@ -428,19 +505,20 @@ function inicializarRituales() {
         }
 
         actividades.unshift(nuevaActividad);
-        guardarDatosActividades(actividades);
+        const guardado = await guardarDatosActividades(actividades);
+        if (!guardado) return;
 
         formRituales.reset();
         if (inputFechaAct) inputFechaAct.value = obtenerFechaHoy();
         selectTipoAct.dispatchEvent(new Event('change'));
-        renderizarActividades();
+        await renderizarActividades();
     });
 
     renderizarActividades();
 }
 
-function toggleDiaRitual(id, numeroDia) {
-    const actividades = obtenerDatosActividades();
+async function toggleDiaRitual(id, numeroDia) {
+    const actividades = await obtenerDatosActividades();
     const act = actividades.find(a => a.id === id);
 
     if (act && act.tipo === 'ritual') {
@@ -464,13 +542,13 @@ function toggleDiaRitual(id, numeroDia) {
 
         act.diasCompletados = Object.keys(act.registroDias).length;
 
-        guardarDatosActividades(actividades);
-        renderizarActividades();
+        await guardarDatosActividades(actividades);
+        await renderizarActividades();
     }
 }
 
-function renderizarActividades() {
-    const actividades = obtenerDatosActividades();
+async function renderizarActividades() {
+    const actividades = await obtenerDatosActividades();
     const elLista = document.getElementById('actividades-lista');
 
     if (!elLista) return;
@@ -596,47 +674,45 @@ function renderizarActividades() {
     });
 }
 
-function agregarTarea(e, id) {
+async function agregarTarea(e, id) {
     e.preventDefault();
     const input = e.target.querySelector('.input-tarea');
     const texto = input.value.trim();
     if (!texto) return;
 
-    const actividades = obtenerDatosActividades();
+    const actividades = await obtenerDatosActividades();
     const act = actividades.find(a => a.id === id);
     if (act) {
         if (!act.tareas) act.tareas = [];
         act.tareas.push({ texto, completada: false });
-        guardarDatosActividades(actividades);
-        renderizarActividades();
+        await guardarDatosActividades(actividades);
+        await renderizarActividades();
     }
 }
 
-function toggleTarea(actId, tareaIdx) {
-    const actividades = obtenerDatosActividades();
+async function toggleTarea(actId, tareaIdx) {
+    const actividades = await obtenerDatosActividades();
     const act = actividades.find(a => a.id === actId);
     if (act && act.tareas[tareaIdx]) {
         act.tareas[tareaIdx].completada = !act.tareas[tareaIdx].completada;
-        guardarDatosActividades(actividades);
-        renderizarActividades();
+        await guardarDatosActividades(actividades);
+        await renderizarActividades();
     }
 }
 
-function eliminarTarea(actId, tareaIdx) {
-    const actividades = obtenerDatosActividades();
+async function eliminarTarea(actId, tareaIdx) {
+    const actividades = await obtenerDatosActividades();
     const act = actividades.find(a => a.id === actId);
     if (act && act.tareas) {
         act.tareas.splice(tareaIdx, 1);
-        guardarDatosActividades(actividades);
-        renderizarActividades();
+        await guardarDatosActividades(actividades);
+        await renderizarActividades();
     }
 }
 
-function eliminarActividad(id) {
-    let actividades = obtenerDatosActividades();
-    actividades = actividades.filter(a => a.id !== id);
-    guardarDatosActividades(actividades);
-    renderizarActividades();
+async function eliminarActividad(id) {
+    const eliminado = await eliminarActividadDeSupabase(id);
+    if (eliminado) await renderizarActividades();
 }
 
 // ==========================================
