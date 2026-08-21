@@ -26,7 +26,12 @@
 <body class="h-full bg-[#0d0d10] text-gray-200 font-sans antialiased flex overflow-hidden">
 
     <!-- BARRA LATERAL (SIDEBAR) -->
-    <aside class="w-64 bg-[#121216] border-r border-white/5 p-6 flex flex-col justify-between shrink-0 h-screen select-none">
+     <!-- Botón flotante para abrir/cerrar menú en celular -->
+<button onclick="document.querySelector('aside').classList.toggle('-translate-x-full')" 
+        class="md:hidden fixed top-4 left-4 z-[60] bg-amber-500 text-black p-2 rounded-xl shadow-lg flex items-center justify-center">
+    <span class="material-symbols-outlined">menu</span>
+</button>
+    <aside class="-translate-x-full md:translate-x-0 fixed md:static top-0 left-0 z-50 transition-transform duration-300 w-64 h-screen bg-[#1e1e1e] ...">
         <div>
             <!-- LOGO / CABECERA -->
             <div class="mb-10 flex items-center gap-3">
