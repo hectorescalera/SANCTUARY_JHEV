@@ -21,7 +21,11 @@ const formatoMoneda = new Intl.NumberFormat('es-MX', {
 });
 
 function obtenerFechaHoy() {
-    return new Date().toISOString().split('T')[0];
+    const ahora = new Date();
+    const anio = ahora.getFullYear();
+    const mes = String(ahora.getMonth() + 1).padStart(2, '0');
+    const dia = String(ahora.getDate()).padStart(2, '0');
+    return `${anio}-${mes}-${dia}`;
 }
 
 let graficoInstancia = null;
@@ -560,6 +564,117 @@ async function toggleDiaRitual(id, numeroDia) {
     }
 }
 
+function crearContenidoActividad(act, { interactivo = true } = {}) {
+    const esRitual = act.tipo === 'ritual';
+
+    if (esRitual) {
+        const duracion = act.duracion || 7;
+        const registroDias = act.registroDias || {};
+        const completadosCount = Object.keys(registroDias).length;
+
+        let cuadritosHTML = '<div class="grid grid-cols-7 gap-2 mt-3">';
+        for (let i = 1; i <= duracion; i++) {
+            const estaCompletado = !!registroDias[i];
+            const infoHora = estaCompletado ? `Completado el: ${registroDias[i]}` : `Día ${i}`;
+
+            if (interactivo) {
+                cuadritosHTML += `
+                    <button 
+                        onclick="toggleDiaRitual(${act.id}, ${i})" 
+                        title="${infoHora}"
+                        class="h-10 rounded-xl font-bold text-xs flex flex-col items-center justify-center transition-all duration-200 border ${
+                            estaCompletado
+                                ? 'bg-amber-500 text-black border-amber-400 shadow-md shadow-amber-500/10 scale-95'
+                                : 'bg-[#121212] text-white/50 border-white/10 hover:border-amber-500/50 hover:text-white'
+                        }">
+                        <span>${i}</span>
+                    </button>
+                `;
+            } else {
+                cuadritosHTML += `
+                    <div 
+                        title="${infoHora}"
+                        class="h-10 rounded-xl font-bold text-xs flex flex-col items-center justify-center border ${
+                            estaCompletado
+                                ? 'bg-amber-500 text-black border-amber-400 shadow-md shadow-amber-500/10'
+                                : 'bg-[#121212] text-white/20 border-white/5'
+                        }">
+                        <span>${i}</span>
+                    </div>
+                `;
+            }
+        }
+        cuadritosHTML += '</div>';
+
+        return `
+            <div class="space-y-2">
+                <div class="flex justify-between items-center text-xs">
+                    <span class="text-white/70 font-medium">Progreso: <b class="text-amber-400">${completadosCount}</b> de <b>${duracion}</b> días</span>
+                    <span class="text-[10px] text-amber-300/60 uppercase font-bold tracking-wider">${interactivo ? 'Toca el día para marcar' : 'Rastro del ritual'}</span>
+                </div>
+                ${cuadritosHTML}
+            </div>
+        `;
+    }
+
+    const totalTareas = act.tareas ? act.tareas.length : 0;
+    const completadas = act.tareas ? act.tareas.filter(t => t.completada).length : 0;
+    const avance = totalTareas > 0 ? Math.round((completadas / totalTareas) * 100) : 0;
+
+    let tareasHTML = (act.tareas || []).map((t, idx) => {
+        if (interactivo) {
+            return `
+                <div class="flex items-center justify-between gap-2 text-xs py-1.5 border-b border-white/5">
+                    <label class="flex items-center gap-2 cursor-pointer text-white/80 ${t.completada ? 'line-through text-white/40' : ''}">
+                        <input type="checkbox" ${t.completada ? 'checked' : ''} onchange="toggleTarea(${act.id}, ${idx})" class="rounded border-white/20 text-primary focus:ring-0">
+                        <span>${t.texto}</span>
+                    </label>
+                    <button onclick="eliminarTarea(${act.id}, ${idx})" class="text-white/30 hover:text-red-400 transition">
+                        <span class="material-symbols-outlined text-sm">close</span>
+                    </button>
+                </div>
+            `;
+        }
+
+        return `
+            <div class="flex items-center gap-2 text-xs py-1.5 border-b border-white/5">
+                <span class="material-symbols-outlined text-[14px] ${t.completada ? 'text-emerald-400' : 'text-white/30'}">${t.completada ? 'check_box' : 'check_box_outline_blank'}</span>
+                <span class="${t.completada ? 'line-through text-white/40' : 'text-white/80'}">${t.texto}</span>
+            </div>
+        `;
+    }).join('');
+
+    return `
+        <div class="space-y-3">
+            <div class="flex gap-3 text-xs">
+                ${act.linkLive ? `<a href="${act.linkLive}" target="_blank" class="text-primary hover:underline flex items-center gap-1"><span class="material-symbols-outlined text-sm">open_in_new</span> Ver Live</a>` : ''}
+                ${act.linkRepo ? `<a href="${act.linkRepo}" target="_blank" class="text-blue-400 hover:underline flex items-center gap-1"><span class="material-symbols-outlined text-sm">code</span> Repositorio</a>` : ''}
+            </div>
+
+            <div class="space-y-1.5">
+                <div class="flex justify-between text-xs text-white/70">
+                    <span>Tareas (${completadas}/${totalTareas})</span>
+                    <span class="font-bold text-amber-400">${avance}%</span>
+                </div>
+                <div class="w-full bg-white/10 h-2 rounded-full overflow-hidden">
+                    <div class="bg-blue-500 h-full transition-all duration-300" style="width: ${avance}%"></div>
+                </div>
+            </div>
+
+            <div class="space-y-1 pt-1">
+                ${tareasHTML}
+            </div>
+
+            ${interactivo ? `
+                <form onsubmit="agregarTarea(event, ${act.id})" class="flex gap-2 pt-2">
+                    <input type="text" placeholder="Nueva tarea..." class="input-tarea flex-1 bg-[#121212] border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-primary">
+                    <button type="submit" class="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition">Añadir</button>
+                </form>
+            ` : ''}
+        </div>
+    `;
+}
+
 async function renderizarActividades() {
     const actividades = await obtenerDatosActividades();
     const elLista = document.getElementById('actividades-lista');
@@ -580,110 +695,27 @@ async function renderizarActividades() {
         elLista.innerHTML = '';
 
         activas.forEach(act => {
-        const tarjeta = document.createElement('div');
-        tarjeta.className = 'p-6 rounded-2xl bg-[#1e1e1e] border border-white/5 shadow-xl space-y-4';
-        const esRitual = act.tipo === 'ritual';
-
-        let contenidoEspecifico = '';
-
-        if (esRitual) {
-            const duracion = act.duracion || 7;
-            const registroDias = act.registroDias || {};
-            const completadosCount = Object.keys(registroDias).length;
-
-            let cuadritosHTML = '<div class="grid grid-cols-7 gap-2 mt-3">';
-            for (let i = 1; i <= duracion; i++) {
-                const estaCompletado = !!registroDias[i];
-                const infoHora = estaCompletado ? `Completado el: ${registroDias[i]}` : `Día ${i}`;
-
-                cuadritosHTML += `
-                    <button 
-                        onclick="toggleDiaRitual(${act.id}, ${i})" 
-                        title="${infoHora}"
-                        class="h-10 rounded-xl font-bold text-xs flex flex-col items-center justify-center transition-all duration-200 border ${
-                            estaCompletado 
-                            ? 'bg-amber-500 text-black border-amber-400 shadow-md shadow-amber-500/10 scale-95' 
-                            : 'bg-[#121212] text-white/50 border-white/10 hover:border-amber-500/50 hover:text-white'
-                        }">
-                        <span>${i}</span>
-                    </button>
-                `;
-            }
-            cuadritosHTML += '</div>';
-
-            contenidoEspecifico = `
-                <div class="space-y-2">
-                    <div class="flex justify-between items-center text-xs">
-                        <span class="text-white/70 font-medium">Progreso: <b class="text-amber-400">${completadosCount}</b> de <b>${duracion}</b> días</span>
-                        <span class="text-[10px] text-amber-300/60 uppercase font-bold tracking-wider">Toca el día para marcar</span>
+            const tarjeta = document.createElement('div');
+            const esRitual = act.tipo === 'ritual';
+            tarjeta.className = 'p-6 rounded-2xl bg-[#1e1e1e] border border-white/5 shadow-xl space-y-4';
+            tarjeta.innerHTML = `
+                <div class="flex items-start justify-between">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${esRitual ? 'bg-amber-500/20 text-amber-300' : 'bg-blue-500/20 text-blue-300'}">
+                                ${esRitual ? 'Ritual' : 'Proyecto'}
+                            </span>
+                            <span class="text-xs text-white/40">${act.fecha}</span>
+                        </div>
+                        <h4 class="text-base font-bold text-white uppercase tracking-wide">${act.nombre}</h4>
+                        ${act.notas ? `<p class="text-xs text-on-surface-variant/70 mt-1">${act.notas}</p>` : ''}
                     </div>
-                    ${cuadritosHTML}
-                </div>
-            `;
-        } else {
-            const totalTareas = act.tareas ? act.tareas.length : 0;
-            const completadas = act.tareas ? act.tareas.filter(t => t.completada).length : 0;
-            const avance = totalTareas > 0 ? Math.round((completadas / totalTareas) * 100) : 0;
-
-            let tareasHTML = (act.tareas || []).map((t, idx) => `
-                <div class="flex items-center justify-between gap-2 text-xs py-1.5 border-b border-white/5">
-                    <label class="flex items-center gap-2 cursor-pointer text-white/80 ${t.completada ? 'line-through text-white/40' : ''}">
-                        <input type="checkbox" ${t.completada ? 'checked' : ''} onchange="toggleTarea(${act.id}, ${idx})" class="rounded border-white/20 text-primary focus:ring-0">
-                        <span>${t.texto}</span>
-                    </label>
-                    <button onclick="eliminarTarea(${act.id}, ${idx})" class="text-white/30 hover:text-red-400 transition">
-                        <span class="material-symbols-outlined text-sm">close</span>
+                    <button onclick="eliminarActividad(${act.id})" class="text-on-surface-variant/40 hover:text-red-400 transition">
+                        <span class="material-symbols-outlined text-lg">delete</span>
                     </button>
                 </div>
-            `).join('');
-
-            contenidoEspecifico = `
-                <div class="space-y-3">
-                    <div class="flex gap-3 text-xs">
-                        ${act.linkLive ? `<a href="${act.linkLive}" target="_blank" class="text-primary hover:underline flex items-center gap-1"><span class="material-symbols-outlined text-sm">open_in_new</span> Ver Live</a>` : ''}
-                        ${act.linkRepo ? `<a href="${act.linkRepo}" target="_blank" class="text-blue-400 hover:underline flex items-center gap-1"><span class="material-symbols-outlined text-sm">code</span> Repositorio</a>` : ''}
-                    </div>
-
-                    <div class="space-y-1.5">
-                        <div class="flex justify-between text-xs text-white/70">
-                            <span>Tareas (${completadas}/${totalTareas})</span>
-                            <span class="font-bold text-amber-400">${avance}%</span>
-                        </div>
-                        <div class="w-full bg-white/10 h-2 rounded-full overflow-hidden">
-                            <div class="bg-blue-500 h-full transition-all duration-300" style="width: ${avance}%"></div>
-                        </div>
-                    </div>
-
-                    <div class="space-y-1 pt-1">
-                        ${tareasHTML}
-                    </div>
-
-                    <form onsubmit="agregarTarea(event, ${act.id})" class="flex gap-2 pt-2">
-                        <input type="text" placeholder="Nueva tarea..." class="input-tarea flex-1 bg-[#121212] border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-primary">
-                        <button type="submit" class="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition">Añadir</button>
-                    </form>
-                </div>
+                ${crearContenidoActividad(act, { interactivo: true })}
             `;
-        }
-
-        tarjeta.innerHTML = `
-            <div class="flex items-start justify-between">
-                <div>
-                    <div class="flex items-center gap-2 mb-1">
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${esRitual ? 'bg-amber-500/20 text-amber-300' : 'bg-blue-500/20 text-blue-300'}">
-                            ${esRitual ? 'Ritual' : 'Proyecto'}
-                        </span>
-                        <span class="text-xs text-white/40">${act.fecha}</span>
-                    </div>
-                    <h4 class="text-base font-bold text-white uppercase tracking-wide">${act.nombre}</h4>
-                    ${act.notas ? `<p class="text-xs text-on-surface-variant/70 mt-1">${act.notas}</p>` : ''}
-                </div>
-                <button onclick="eliminarActividad(${act.id})" class="text-on-surface-variant/40 hover:text-red-400 transition">
-                    <span class="material-symbols-outlined text-lg">delete</span>
-                </button>
-            </div>
-            ${contenidoEspecifico}
-        `;
 
             elLista.appendChild(tarjeta);
         });
@@ -692,18 +724,32 @@ async function renderizarActividades() {
     if (elArchivadas) {
         elArchivadas.innerHTML = archivadas.length === 0
             ? '<p class="text-sm text-white/40">Todavía no hay actividades completadas.</p>'
-            : archivadas.map(act => `
-                <div class="p-4 rounded-xl bg-[#161616] border border-white/5 flex items-center justify-between gap-4">
-                    <div>
-                        <div class="flex items-center gap-2 mb-1">
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${act.tipo === 'ritual' ? 'bg-amber-500/20 text-amber-300' : 'bg-blue-500/20 text-blue-300'}">${act.tipo === 'ritual' ? 'Ritual' : 'Proyecto'}</span>
-                            <span class="text-xs text-white/40">${act.fecha}</span>
+            : archivadas.map(act => {
+                const esRitual = act.tipo === 'ritual';
+                return `
+                    <details open class="group p-5 rounded-2xl bg-[#161616] border border-white/5 shadow-xl">
+                        <summary class="list-none cursor-pointer">
+                            <div class="flex items-start justify-between gap-4">
+                                <div>
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${esRitual ? 'bg-amber-500/20 text-amber-300' : 'bg-blue-500/20 text-blue-300'}">${esRitual ? 'Ritual' : 'Proyecto'}</span>
+                                        <span class="text-xs text-white/40">${act.fecha}</span>
+                                    </div>
+                                    <h4 class="text-sm font-bold text-white uppercase tracking-wide">${act.nombre}</h4>
+                                    ${act.notas ? `<p class="text-xs text-on-surface-variant/70 mt-1 max-w-xl">${act.notas}</p>` : ''}
+                                </div>
+                                <div class="flex items-center gap-2 text-emerald-400 shrink-0">
+                                    <span class="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide">Completado</span>
+                                    <span class="material-symbols-outlined text-lg">task_alt</span>
+                                </div>
+                            </div>
+                        </summary>
+                        <div class="mt-4 border-t border-white/5 pt-4">
+                            ${crearContenidoActividad(act, { interactivo: false })}
                         </div>
-                        <h4 class="text-sm font-bold text-white">${act.nombre}</h4>
-                    </div>
-                    <span class="material-symbols-outlined text-emerald-400" title="Completado">task_alt</span>
-                </div>
-            `).join('');
+                    </details>
+                `;
+            }).join('');
     }
 }
 
